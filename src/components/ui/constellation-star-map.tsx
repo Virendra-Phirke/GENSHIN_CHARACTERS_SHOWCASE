@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useState } from "react";
-import { Lock, Sparkles } from "lucide-react";
+import { Lock } from "lucide-react";
 import type { ConstellationInfo } from "@/lib/types";
 
 interface ConstellationStarMapProps {
@@ -14,11 +14,11 @@ interface ConstellationStarMapProps {
 // 6 Star node normalized positions (0-100% within SVG viewport) in an aesthetic Genshin star cluster shape
 const STAR_COORDS = [
   { x: 14, y: 68 }, // C1
-  { x: 28, y: 32 }, // C2
-  { x: 48, y: 54 }, // C3
-  { x: 64, y: 22 }, // C4
-  { x: 78, y: 62 }, // C5
-  { x: 92, y: 36 }, // C6
+  { x: 28, y: 38 }, // C2
+  { x: 48, y: 60 }, // C3
+  { x: 64, y: 36 }, // C4
+  { x: 78, y: 64 }, // C5
+  { x: 92, y: 40 }, // C6
 ];
 
 export default function ConstellationStarMap({
@@ -29,7 +29,7 @@ export default function ConstellationStarMap({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
-    <div className="constellation-star-map-container relative w-full h-[220px] sm:h-[260px] p-4 rounded border border-white/10 bg-gradient-to-br from-[#131926]/90 to-[#0b0e16]/95 overflow-hidden select-none">
+    <div className="constellation-star-map-container relative w-full h-[240px] sm:h-[280px] p-4 rounded border border-white/10 bg-gradient-to-br from-[#131926]/90 to-[#0b0e16]/95 select-none overflow-visible">
       {/* Background Celestial Grid & Nebula Glow */}
       <div
         className="pointer-events-none absolute inset-0 opacity-20"
@@ -152,9 +152,13 @@ export default function ConstellationStarMap({
               C{c.index}
             </span>
 
-            {/* Hover Tooltip Card */}
+            {/* Hover Tooltip Card - Positioned to always be visible */}
             {isHovered && (
-              <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-36 p-2 rounded bg-[#101520]/95 border border-white/20 shadow-2xl backdrop-blur-md pointer-events-none z-30 text-center animate-in fade-in zoom-in-95 duration-150">
+              <div
+                className={`absolute left-1/2 -translate-x-1/2 w-40 p-2.5 rounded bg-[#101520]/95 border border-[#c8a96e]/40 shadow-[0_12px_30px_rgba(0,0,0,0.85)] backdrop-blur-md pointer-events-none z-50 text-center animate-in fade-in zoom-in-95 duration-150 ${
+                  coord.y <= 45 ? "top-14" : "bottom-14"
+                }`}
+              >
                 <span className="block text-[8px] font-bold tracking-widest text-[#c8a96e] uppercase">
                   CONSTELLATION 0{c.index}
                 </span>
@@ -175,18 +179,6 @@ export default function ConstellationStarMap({
           </div>
         );
       })}
-
-      {/* Constellation Header Bar */}
-      <div className="absolute top-3 left-4 flex items-center gap-2 pointer-events-none">
-        <Sparkles size={12} className="text-[#c8a96e]" />
-        <span className="text-[9px] font-bold tracking-[0.16em] text-[#c8a96e] uppercase">
-          Celestial Constellation Map
-        </span>
-      </div>
-
-      <div className="absolute top-3 right-4 text-[9px] text-[#7d8898] font-mono pointer-events-none">
-        {constellations.filter((c) => c.unlocked).length} / 6 NODES
-      </div>
     </div>
   );
 }

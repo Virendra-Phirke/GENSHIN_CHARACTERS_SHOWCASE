@@ -26,12 +26,21 @@ export default function RotatingCharacterCarousel({
   activeCharacterId,
   onSelectCharacter,
 }: RotatingCharacterCarouselProps) {
-  const activeIndex = characters.findIndex((c) => c.id === activeCharacterId);
-  const currentIndex = activeIndex >= 0 ? activeIndex : 0;
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const idx = characters.findIndex((c) => c.id === activeCharacterId);
+    return idx >= 0 ? idx : 0;
+  });
 
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Sync index when activeCharacterId prop changes externally
+  useEffect(() => {
+    const idx = characters.findIndex((c) => c.id === activeCharacterId);
+    if (idx >= 0) {
+      setCurrentIndex(idx);
+    }
+  }, [activeCharacterId, characters]);
 
   // Touch swipe support
   const touchStartXRef = useRef<number | null>(null);
@@ -43,10 +52,21 @@ export default function RotatingCharacterCarousel({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const selectIndex = useCallback(
+  const handleNext = useCallback(() => {
+    if (!characters.length) return;
+    setCurrentIndex((prev) => (prev + 1) % characters.length);
+  }, [characters.length]);
+
+  const handlePrev = useCallback(() => {
+    if (!characters.length) return;
+    setCurrentIndex((prev) => (prev - 1 + characters.length) % characters.length);
+  }, [characters.length]);
+
+  const selectCharacterByIndex = useCallback(
     (index: number) => {
       if (!characters.length) return;
       const normalizedIndex = (index + characters.length) % characters.length;
+      setCurrentIndex(normalizedIndex);
       const target = characters[normalizedIndex];
       if (target) {
         onSelectCharacter(target);
@@ -54,14 +74,6 @@ export default function RotatingCharacterCarousel({
     },
     [characters, onSelectCharacter]
   );
-
-  const handleNext = useCallback(() => {
-    selectIndex(currentIndex + 1);
-  }, [currentIndex, selectIndex]);
-
-  const handlePrev = useCallback(() => {
-    selectIndex(currentIndex - 1);
-  }, [currentIndex, selectIndex]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -75,12 +87,12 @@ export default function RotatingCharacterCarousel({
 
   // Smooth continuous right-to-left auto-rotation
   useEffect(() => {
-    if (!isAutoPlaying || isHovered) return;
+    if (!isAutoPlaying || characters.length <= 1) return;
     const interval = setInterval(() => {
       handleNext();
-    }, 3600);
+    }, 2800);
     return () => clearInterval(interval);
-  }, [isAutoPlaying, isHovered, handleNext]);
+  }, [isAutoPlaying, characters.length, handleNext]);
 
   // Touch swipe handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -104,13 +116,13 @@ export default function RotatingCharacterCarousel({
     glow: "rgba(200,169,110,.35)",
   };
 
+  const maxVisibleOffset = Math.min(3, Math.floor((characters.length - 1) / 2));
+
   return (
     <div
       className="rotating-carousel-container relative w-full overflow-hidden py-8 select-none"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Carousel Top Controls & Active Indicator */}
       <div className="carousel-header mb-6 flex flex-wrap items-center justify-between gap-4 px-4 sm:px-8">
@@ -147,7 +159,10 @@ export default function RotatingCharacterCarousel({
 
           <button
             type="button"
-            onClick={handlePrev}
+            onClick={() => {
+              const prev = (currentIndex - 1 + characters.length) % characters.length;
+              selectCharacterByIndex(prev);
+            }}
             className="carousel-ctrl-btn p-2 rounded-full border border-white/10 bg-white/5 text-[#d1d8e2] hover:border-[#c8a96e] hover:text-[#f3dfbd] transition-colors"
             title="Previous character (Left Arrow)"
             aria-label="Previous character"
@@ -161,7 +176,10 @@ export default function RotatingCharacterCarousel({
 
           <button
             type="button"
-            onClick={handleNext}
+            onClick={() => {
+              const next = (currentIndex + 1) % characters.length;
+              selectCharacterByIndex(next);
+            }}
             className="carousel-ctrl-btn p-2 rounded-full border border-white/10 bg-white/5 text-[#d1d8e2] hover:border-[#c8a96e] hover:text-[#f3dfbd] transition-colors"
             title="Next character (Right Arrow)"
             aria-label="Next character"
@@ -185,8 +203,8 @@ export default function RotatingCharacterCarousel({
           if (offset > total / 2) offset -= total;
           if (offset < -total / 2) offset += total;
 
-          // Render visible cards within buffer (-4 to +4)
-          const isVisible = Math.abs(offset) <= 4;
+          // Only render visible cards within max radius to avoid wrap flips
+          const isVisible = Math.abs(offset) <= maxVisibleOffset;
           if (!isVisible) return null;
 
           const isCurrent = offset === 0;
@@ -197,15 +215,13 @@ export default function RotatingCharacterCarousel({
           };
 
           // 3D Transform calculations for smooth right-to-left rotation
-          const rotateY = offset * 26;
-          const translateX = offset * (isMobile ? 125 : 195);
-          const translateZ = -Math.abs(offset) * 125;
-          const scale = Math.max(0.68, 1 - Math.abs(offset) * 0.11);
+          const rotateY = offset * 28;
+          const translateX = offset * (isMobile ? 120 : 190);
+          const translateZ = -Math.abs(offset) * 130;
+          const scale = Math.max(0.66, 1 - Math.abs(offset) * 0.12);
           const opacity = isCurrent
             ? 1
-            : Math.abs(offset) >= 4
-            ? 0
-            : Math.max(0.2, 1 - Math.abs(offset) * 0.25);
+            : Math.max(0.25, 1 - Math.abs(offset) * 0.28);
           const zIndex = 25 - Math.abs(offset);
 
           return (
@@ -224,7 +240,7 @@ export default function RotatingCharacterCarousel({
                   ? `0 24px 50px rgba(0,0,0,0.65), 0 0 35px ${charElement.glow}`
                   : "0 14px 30px rgba(0,0,0,0.5)",
               }}
-              onClick={() => selectIndex(index)}
+              onClick={() => selectCharacterByIndex(index)}
             >
               {/* Character Card Background Image */}
               <div className="relative w-full h-full bg-[#111722] overflow-hidden">
@@ -267,7 +283,7 @@ export default function RotatingCharacterCarousel({
             <button
               key={c.id}
               type="button"
-              onClick={() => selectIndex(i)}
+              onClick={() => selectCharacterByIndex(i)}
               className={`thumb-nav-btn relative flex items-center gap-2 px-3 py-1.5 rounded border transition-all duration-200 text-xs ${
                 isActive
                   ? "bg-[#c8a96e]/20 border-[#c8a96e] text-[#f2e2be] shadow-[0_0_12px_rgba(200,169,110,0.25)] font-semibold"

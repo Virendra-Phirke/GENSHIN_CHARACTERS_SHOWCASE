@@ -734,41 +734,11 @@ export default function UnifiedShowcaseView({
                 </div>
 
                 {/* Celestial Star Map Sky Atlas */}
-                <div className="mb-4">
-                  <ConstellationStarMap
-                    constellations={activeCharacter.constellations}
-                    elementColor={elementTheme.accent}
-                    elementGlow={elementTheme.glow}
-                  />
-                </div>
-
-                <div className="constellations-grid">
-                  {activeCharacter.constellations.map((c) => (
-                    <div
-                      key={c.index}
-                      className={`constellation-card ${c.unlocked ? "is-unlocked" : "is-locked"}`}
-                    >
-                      <div className="constellation-icon-wrap">
-                        <TalentOrConstIcon
-                          src={c.icon}
-                          fallbackSrc={c.iconFallback}
-                          alt={`Constellation ${c.index}`}
-                        />
-                        {!c.unlocked && (
-                          <div className="const-locked-overlay">
-                            <Lock size={12} />
-                          </div>
-                        )}
-                      </div>
-                      <div className="constellation-card-info">
-                        <span className="const-num">C{c.index}</span>
-                        <span className="const-status">
-                          {c.unlocked ? "ACTIVATED" : "LOCKED"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <ConstellationStarMap
+                  constellations={activeCharacter.constellations}
+                  elementColor={elementTheme.accent}
+                  elementGlow={elementTheme.glow}
+                />
               </section>
             </div>
           </section>
