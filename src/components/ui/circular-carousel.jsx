@@ -541,6 +541,7 @@ const CircularCarousel = ({
 
       if (!state.dir) state.dir = directionSignRef.current || -1;
       const paused = (s.pauseOnHover && state.hover) || state.drag || now < state.holdUntil;
+      let busy = Boolean(state.intro) || state.drag;
 
       // Handle bidirectional bounce loop (right to left <-> left to right)
       if (s.direction === 'bounce' && !paused && !state.intro && state.introDone) {
@@ -557,7 +558,6 @@ const CircularCarousel = ({
       }
 
       const cruise = s.autoplay === 'drift' && !paused && !state.intro ? s.speed * state.dir : 0;
-      let busy = Boolean(state.intro) || state.drag;
 
       if (state.drag || state.intro) {
         state.velocity = state.drag ? state.velocity : 0;
