@@ -248,7 +248,6 @@ export default function UnifiedShowcaseView({
   const [shareModalOpen, setShareModalOpen] = useState(false); // Feature 20
   const [isResonanceActive, setIsResonanceActive] = useState(false); // Feature 15
   const [hoveredSetBonus, setHoveredSetBonus] = useState<string | null>(null); // Feature 10
-  const [isDollyActive, setIsDollyActive] = useState(false); // Feature 3: Camera Dolly Zoom
 
   useEffect(() => {
     const controller = new AbortController();
@@ -539,12 +538,6 @@ export default function UnifiedShowcaseView({
             onSelectCharacter={(char) => {
               setActiveCharacter(char);
               setFailedSplash(null);
-              setIsDollyActive(true);
-              setTimeout(() => setIsDollyActive(false), 850);
-              const el = document.getElementById("section-dossier");
-              if (el) {
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
             }}
           />
         </section>
@@ -552,15 +545,7 @@ export default function UnifiedShowcaseView({
         {/* =========================================================================
             SECTION 2: FEATURED CHARACTER DOSSIER (Pure Borderless Splash Art + Bento)
            ========================================================================= */}
-        <div
-          key={activeCharacter.id}
-          id="section-dossier"
-          className={`dossier-animate-entry mt-6 transition-all duration-700 ${
-            isDollyActive
-              ? "scale-[1.025] translate-y-1 brightness-110"
-              : "scale-100 translate-y-0 brightness-100"
-          }`}
-        >
+        <div key={activeCharacter.id} id="section-dossier" className="dossier-animate-entry mt-6">
           {/* Hero Banner: Borderless Centered Splash Art + Metadata */}
           <section className="character-build-hero">
             {/* Feature 1, 2, 3: Mouse-Driven 3D Parallax, Disintegration Burst, Fullscreen Spotlight */}
