@@ -89,6 +89,7 @@ export default function RotatingCharacterCarousel({
   const items = useMemo(() => {
     return characters.map((char) => ({
       src: char.image || char.imageFallback || "",
+      fallback: char.imageFallback || char.image || "",
       alt: char.name,
       title: char.name,
       subtitle: char.element || "Character",

@@ -599,7 +599,7 @@ const CircularCarousel = ({
 
         const world = wrap(base + angle);
         const facing = Math.cos(world * TO_RAD);
-        if (s.layout.inward) card.style.visibility = Math.abs(world) > 155 ? 'hidden' : '';
+        card.style.visibility = '';
         const fade = Math.min(0.42, s.depthFade * Math.pow((1 - facing) / 2, 1.25));
         card.style.setProperty('--cc-depth', fade.toFixed(3));
       }
@@ -878,10 +878,16 @@ const CircularCarousel = ({
           <img
             className="circular-carousel__photo"
             src={item.src}
-            alt=""
+            alt={item.title || item.alt || ""}
             draggable={false}
             decoding="async"
             style={photoStyle}
+            onError={e => {
+              const fallback = item.fallback || item.character?.imageFallback;
+              if (fallback && e.currentTarget.src !== fallback) {
+                e.currentTarget.src = fallback;
+              }
+            }}
           />
           {gone && (
             <img

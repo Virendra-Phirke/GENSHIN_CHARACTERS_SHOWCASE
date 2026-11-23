@@ -2,6 +2,7 @@ import type { CSSProperties, ComponentType } from "react";
 
 export interface CircularCarouselItem {
   src: string;
+  fallback?: string;
   alt?: string;
   title?: string;
   subtitle?: string;
