@@ -2,9 +2,8 @@
 
 import Image from "next/image";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { ChevronLeft, ChevronRight, Filter, Pause, Play, Sparkles, Swords, Volume2, VolumeX } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, Pause, Play, Sparkles, Swords } from "lucide-react";
 import type { ShowcaseCharacter } from "@/lib/types";
-import { playCelestialChime, toggleAudioMute } from "@/lib/audio-chime";
 
 interface RotatingCharacterCarouselProps {
   characters: ShowcaseCharacter[];
@@ -30,7 +29,6 @@ export default function RotatingCharacterCarousel({
   onSelectCharacter,
 }: RotatingCharacterCarouselProps) {
   const [selectedElementFilter, setSelectedElementFilter] = useState("ALL");
-  const [isAudioMuted, setIsAudioMuted] = useState(true);
 
   // Filtered characters
   const filteredCharacters = useMemo(() => {
@@ -61,7 +59,6 @@ export default function RotatingCharacterCarousel({
       const target = filteredCharacters[normalizedIndex];
       if (target) {
         onSelectCharacter(target);
-        playCelestialChime(587.33); // D5 chime
       }
     },
     [filteredCharacters, onSelectCharacter]
@@ -139,26 +136,8 @@ export default function RotatingCharacterCarousel({
           </div>
         </div>
 
-        {/* Audio Toggle, Auto-Play, and Chevrons */}
+        {/* Auto-Play and Chevrons */}
         <div className="carousel-controls flex items-center gap-2">
-          {/* Audio Chime Mute Button */}
-          <button
-            type="button"
-            onClick={() => {
-              const nextMuted = toggleAudioMute();
-              setIsAudioMuted(nextMuted);
-            }}
-            className={`carousel-ctrl-btn p-2 rounded-full border transition-colors ${
-              !isAudioMuted
-                ? "border-[#c8a96e] bg-[#c8a96e]/15 text-[#f3dfbd]"
-                : "border-white/10 bg-white/5 text-[#8c97a7] hover:text-white"
-            }`}
-            title={isAudioMuted ? "Unmute celestial soundscapes" : "Mute audio"}
-            aria-label={isAudioMuted ? "Unmute celestial soundscapes" : "Mute audio"}
-          >
-            {isAudioMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-          </button>
-
           <button
             type="button"
             onClick={() => setIsAutoPlaying(!isAutoPlaying)}
@@ -212,7 +191,6 @@ export default function RotatingCharacterCarousel({
               type="button"
               onClick={() => {
                 setSelectedElementFilter(el);
-                playCelestialChime(440);
               }}
               className={`px-2.5 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-200 border ${
                 isSelected

@@ -10,8 +10,6 @@ import {
   ShieldCheck,
   Sparkles,
   Swords,
-  Volume2,
-  VolumeX,
   Zap,
 } from "lucide-react";
 import type { PlayerApiError, PlayerShowcase, ShowcaseCharacter } from "@/lib/types";
@@ -24,7 +22,6 @@ import CritRatioGauge from "@/components/ui/crit-ratio-gauge";
 import StatRadarChart from "@/components/ui/stat-radar-chart";
 import ConstellationStarMap from "@/components/ui/constellation-star-map";
 import ArtifactRollInspector from "@/components/ui/artifact-roll-inspector";
-import { playCelestialChime, toggleAudioMute, getIsAudioMuted } from "@/lib/audio-chime";
 
 interface UnifiedShowcaseViewProps {
   initialCharacterId?: number;
@@ -138,7 +135,6 @@ export default function UnifiedShowcaseView({
   const [loading, setLoading] = useState(true);
   const [failedSplash, setFailedSplash] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const [isMuted, setIsMuted] = useState(() => getIsAudioMuted());
 
   useEffect(() => {
     const controller = new AbortController();
@@ -303,24 +299,8 @@ export default function UnifiedShowcaseView({
           </span>
         </Link>
 
-        {/* Traveler Summary Chips & Audio Toggle */}
+        {/* Traveler Summary Chips */}
         <div className="flex items-center gap-3 sm:gap-5 text-xs">
-          <button
-            type="button"
-            onClick={() => {
-              const nextMuted = toggleAudioMute();
-              setIsMuted(nextMuted);
-            }}
-            className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold tracking-wider transition-all ${
-              !isMuted
-                ? "border-[#c8a96e] bg-[#c8a96e]/15 text-[#f3dfbd] shadow-sm"
-                : "border-white/10 bg-white/5 text-[#8894a4] hover:text-white"
-            }`}
-            title="Toggle celestial audio effects"
-          >
-            {!isMuted ? <Volume2 size={12} className="text-[#c8a96e]" /> : <VolumeX size={12} />}
-            <span>{!isMuted ? "AUDIO ON" : "AUDIO MUTED"}</span>
-          </button>
 
           <span className="hidden md:inline text-[#8894a4] tracking-wider text-[10px]">
             TRAVELER: <strong className="text-[#f1f3f7]">{profile.nickname || "Traveler"}</strong>
@@ -348,7 +328,6 @@ export default function UnifiedShowcaseView({
             onSelectCharacter={(char) => {
               setActiveCharacter(char);
               setFailedSplash(null);
-              playCelestialChime(587.33);
             }}
           />
         </section>
