@@ -329,8 +329,10 @@ const CircularCarousel = ({
 
   const dragSign = layout.inward ? -1 : 1;
   const directionSign = (direction === 'right' ? 1 : -1) * dragSign;
+  const directionSignRef = useRef(directionSign);
 
   useEffect(() => {
+    directionSignRef.current = directionSign;
     stateRef.current.dir = directionSign;
     wakeRef.current();
   }, [directionSign]);
@@ -530,7 +532,7 @@ const CircularCarousel = ({
         }
       }
 
-      if (!state.dir) state.dir = directionSign || -1;
+      if (!state.dir) state.dir = directionSignRef.current || -1;
       const paused = (s.pauseOnHover && state.hover) || state.drag || now < state.holdUntil;
       const cruise = s.autoplay === 'drift' && !paused && !state.intro ? s.speed * state.dir : 0;
       let busy = Boolean(state.intro) || state.drag;
