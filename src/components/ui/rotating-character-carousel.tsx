@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { Sliders } from "lucide-react";
 import CircularCarousel from "./circular-carousel";
+import CarouselCustomizer, {
+  CarouselCustomConfig,
+  DEFAULT_CAROUSEL_CONFIG,
+} from "./carousel-customizer";
 import type { ShowcaseCharacter } from "@/lib/types";
 
 interface RotatingCharacterCarouselProps {
@@ -9,6 +14,8 @@ interface RotatingCharacterCarouselProps {
   activeCharacterId: number;
   onSelectCharacter: (character: ShowcaseCharacter) => void;
 }
+
+const STORAGE_KEY = "genshin_carousel_custom_config_v1";
 
 const ELEMENT_COLORS: Record<string, { accent: string; bg: string; glow: string }> = {
   Cryo: { accent: "#9ed8e9", bg: "rgba(158,216,233,.12)", glow: "rgba(158,216,233,.38)" },
@@ -26,6 +33,42 @@ export default function RotatingCharacterCarousel({
   onSelectCharacter,
 }: RotatingCharacterCarouselProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [showCustomizer, setShowCustomizer] = useState(false);
+  const [config, setConfig] = useState<CarouselCustomConfig>(DEFAULT_CAROUSEL_CONFIG);
+
+  // Initialize from localStorage if saved
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        requestAnimationFrame(() => {
+          setConfig((prev) => ({ ...prev, ...parsed }));
+        });
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, []);
+
+  // Save to localStorage when changed
+  const handleConfigChange = (newConfig: CarouselCustomConfig) => {
+    setConfig(newConfig);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig));
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
+  const handleResetConfig = () => {
+    setConfig(DEFAULT_CAROUSEL_CONFIG);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore storage errors
+    }
+  };
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
@@ -54,6 +97,12 @@ export default function RotatingCharacterCarousel({
     }));
   }, [characters]);
 
+  // Responsive adjusted card width and gap
+  const effectiveCardWidth = isMobile
+    ? Math.min(config.cardWidth, 240)
+    : config.cardWidth;
+  const effectiveGap = isMobile ? Math.min(config.gap, 45) : config.gap;
+
   return (
     <div className="rotating-carousel-container relative w-full overflow-hidden py-6 select-none">
       {/* Carousel Top Controls & Active Indicator */}
@@ -72,7 +121,41 @@ export default function RotatingCharacterCarousel({
             </h3>
           </div>
         </div>
+
+        {/* Right Side Customize Button */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowCustomizer((prev) => !prev)}
+            className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-medium transition-all duration-300 shadow-sm ${
+              showCustomizer
+                ? "bg-[#c8a96e]/20 border-[#c8a96e] text-[#f2e2be] shadow-[0_0_16px_rgba(200,169,110,0.3)] ring-1 ring-[#c8a96e]/40"
+                : "bg-[#14161f] border-[#292c3d] text-[#b0b7c6] hover:text-white hover:border-[#3f435c] hover:bg-[#1a1d29]"
+            }`}
+            title="Modify 3D Circular Carousel settings"
+          >
+            <Sliders className="w-3.5 h-3.5 text-[#c8a96e] transition-transform duration-300 group-hover:rotate-90" />
+            <span>Customize</span>
+            <span
+              className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                showCustomizer ? "bg-[#c8a96e] animate-pulse" : "bg-[#717688]"
+              }`}
+            />
+          </button>
+        </div>
       </div>
+
+      {/* Expandable Live Customizer Panel */}
+      {showCustomizer && (
+        <div className="px-4 sm:px-8">
+          <CarouselCustomizer
+            config={config}
+            onChange={handleConfigChange}
+            onReset={handleResetConfig}
+            onClose={() => setShowCustomizer(false)}
+          />
+        </div>
+      )}
 
       {/* 3D Panorama CircularCarousel Stage */}
       <div className="relative w-full h-[480px] sm:h-[540px] flex items-center justify-center">
@@ -85,30 +168,30 @@ export default function RotatingCharacterCarousel({
         <div className="w-full h-full relative z-10">
           <CircularCarousel
             items={items}
-            preset="panorama"
-            intro="spin"
-            cardWidth={isMobile ? 220 : 308}
-            aspectRatio={0.67}
-            gap={isMobile ? 40 : 82}
-            curve={1}
-            tilt={0}
-            perspective={1800}
-            autoplay="drift"
-            speed={7}
-            interval={3}
-            direction="right"
-            draggable={true}
-            momentum={0.6}
-            snap={false}
-            pauseOnHover={false}
-            focusOnClick={true}
-            parallax={0.72}
-            stretch={0.63}
-            depthFade={0.21}
-            fadeColor="#695983"
-            innerShade={0.18}
-            cornerRadius={2}
-            captions={false}
+            preset={config.preset}
+            intro={config.intro}
+            cardWidth={effectiveCardWidth}
+            aspectRatio={config.aspect}
+            gap={effectiveGap}
+            curve={config.curve}
+            tilt={config.tilt}
+            perspective={config.perspective}
+            autoplay={config.autoplay}
+            speed={config.speed}
+            interval={config.interval}
+            direction={config.direction}
+            draggable={config.draggable}
+            momentum={config.momentum}
+            snap={config.snap}
+            pauseOnHover={config.pauseOnHover}
+            focusOnClick={config.focusOnClick}
+            parallax={config.parallax}
+            stretch={config.stretch}
+            depthFade={config.depthFade}
+            fadeColor={config.fadeColor}
+            innerShade={config.innerShade}
+            cornerRadius={config.cornerRadius}
+            captions={config.captions}
             onItemClick={(item) => {
               const char = item?.character as ShowcaseCharacter | undefined;
               if (char) {
