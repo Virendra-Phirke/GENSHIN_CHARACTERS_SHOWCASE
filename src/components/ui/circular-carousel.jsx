@@ -750,7 +750,7 @@ const CircularCarousel = ({
 
   useEffect(() => {
     wakeRef.current();
-  }, [autoplay, speed]);
+  });
 
   const focusIndex = useCallback(index => {
     const state = stateRef.current;
