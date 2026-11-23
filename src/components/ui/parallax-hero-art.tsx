@@ -149,8 +149,8 @@ export default function ParallaxHeroArt({
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="character-hero-art-stage group relative w-full h-full min-h-[460px] sm:min-h-[560px] flex items-center justify-center select-none overflow-visible cursor-pointer"
-        style={{ perspective: "1200px" }}
+        className="character-hero-art-stage group relative w-full flex items-center justify-center select-none overflow-visible cursor-pointer"
+        style={{ perspective: "1200px", height: "clamp(520px, 58vh, 720px)" }}
       >
         {/* Layer 1 (Deep Background): Elemental Ambient Mandala & Radiant Aurora */}
         <div
@@ -175,7 +175,7 @@ export default function ParallaxHeroArt({
 
         {/* Layer 2 (Middle Layer): High-Impact Character Splash Artwork with 3D Tilt */}
         <div
-          className="character-hero-art-frame relative w-full h-full transition-transform duration-200 ease-out cursor-pointer"
+          className="character-hero-art-frame relative w-full transition-transform duration-200 ease-out cursor-pointer"
           style={{
             transform: `perspective(1200px) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg) translateZ(25px)`,
             transformStyle: "preserve-3d",
