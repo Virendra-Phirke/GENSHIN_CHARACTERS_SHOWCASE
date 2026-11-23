@@ -31,29 +31,29 @@ export interface CarouselCustomConfig {
 }
 
 export const DEFAULT_CAROUSEL_CONFIG: CarouselCustomConfig = {
-  preset: "panorama",
+  preset: "orbit",
   intro: "spin",
   aspect: "portrait",
-  cardWidth: 308,
-  gap: 82,
+  cardWidth: 460,
+  gap: 156,
   curve: 1,
   tilt: 0,
-  perspective: 1800,
+  perspective: 1550,
   autoplay: "drift",
   speed: 7,
   interval: 3,
-  direction: "right",
-  momentum: 0.6,
-  parallax: 0.72,
-  stretch: 0.63,
-  snap: false,
-  pauseOnHover: false,
+  direction: "left",
+  momentum: 0.55,
+  parallax: 0.3,
+  stretch: 0,
+  snap: true,
+  pauseOnHover: true,
   focusOnClick: true,
   draggable: true,
-  fadeColor: "#695983",
+  fadeColor: "#000000",
   depthFade: 0.21,
-  innerShade: 0.18,
-  cornerRadius: 2,
+  innerShade: 0.82,
+  cornerRadius: 0,
   captions: false,
 };
 
@@ -81,18 +81,29 @@ export default function CarouselCustomizer({
   };
 
   return (
-    <div className="w-full rounded-2xl bg-[#121319] border border-[#21232d] p-5 sm:p-6 shadow-2xl mb-6">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#1d1f27]">
-        <h4 className="text-[15px] font-semibold tracking-tight text-[#f0f2f7]">
-          Customize
-        </h4>
+    <div className="relative w-full rounded-2xl bg-[#0b0e17]/80 backdrop-blur-2xl border border-white/[0.09] p-5 sm:p-6 shadow-[0_24px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.12)] mb-6 overflow-hidden transition-all duration-300">
+      {/* Specular glass reflection bar at top edge */}
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
 
-        <div className="flex items-center gap-3">
+      {/* Subtle ambient glass glow */}
+      <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-gradient-to-b from-[#c8a96e]/10 to-transparent blur-3xl pointer-events-none" />
+
+      {/* Header */}
+      <div className="relative z-10 flex items-center justify-between pb-4 mb-4 border-b border-white/[0.08]">
+        <div className="flex items-center gap-2.5">
+          <h4 className="text-[15px] font-semibold tracking-tight text-[#f0f2f7]">
+            Customize
+          </h4>
+          <span className="text-[10px] uppercase font-mono tracking-wider px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[#c8a96e]">
+            Orbit Mode
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onReset}
-            className="flex items-center gap-1.5 text-xs font-medium text-[#8f96a3] hover:text-white transition-colors px-2 py-1 rounded"
+            className="flex items-center gap-1.5 text-xs font-medium text-[#9ba2b3] hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] hover:border-white/[0.16] backdrop-blur-md transition-all px-2.5 py-1.5 rounded-lg shadow-sm"
             title="Reset to default configuration"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -102,7 +113,7 @@ export default function CarouselCustomizer({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded-md text-[#6c7280] hover:text-white transition-colors"
+              className="p-1.5 rounded-lg text-[#7a8194] hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] hover:border-white/[0.16] backdrop-blur-md transition-all"
               title="Close panel"
             >
               <X className="w-4 h-4" />
@@ -112,7 +123,7 @@ export default function CarouselCustomizer({
       </div>
 
       {/* 3-Column Grid Layout matching the React Bits screenshot */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {/* ================= COLUMN 1 ================= */}
         <div className="flex flex-col gap-2.5">
           {/* Preset */}
@@ -412,9 +423,12 @@ function CustomDropdownRow({ label, value, options, onChange }: CustomDropdownRo
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center justify-between h-[46px] px-4 rounded-xl bg-[#191a21] border border-[#242631] hover:border-[#323545] transition-colors select-none"
+      className={`relative flex items-center justify-between h-[46px] px-4 rounded-xl transition-all duration-200 select-none ${isOpen
+          ? "z-50 bg-[#161824] border border-white/20 shadow-lg"
+          : "z-0 bg-white/[0.035] hover:bg-white/[0.06] backdrop-blur-md border border-white/[0.07] hover:border-white/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+        }`}
     >
-      <span className="text-[13px] font-medium text-[#8c919e] pointer-events-none">
+      <span className="text-[13px] font-medium text-[#9399ab] pointer-events-none">
         {label}
       </span>
 
@@ -422,19 +436,19 @@ function CustomDropdownRow({ label, value, options, onChange }: CustomDropdownRo
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 py-1 px-2 -mr-2 rounded-lg text-[13px] font-medium text-[#e4e7ee] hover:text-white hover:bg-white/5 transition-colors focus:outline-none focus:ring-0 outline-none"
+        style={{ outline: "none", boxShadow: "none" }}
+        className="flex items-center gap-1.5 py-1 px-2.5 -mr-2 rounded-lg text-[13px] font-medium text-[#e4e7ee] hover:text-white hover:bg-white/5 transition-colors focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 border-0 outline-none"
       >
         <span>{activeOption?.label || value}</span>
         <ChevronDown
-          className={`w-3 h-3 text-[#7a8194] transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`w-3 h-3 text-[#7a8194] transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+            }`}
         />
       </button>
 
-      {/* Floating Dark Custom Dropdown Menu */}
+      {/* Floating Dark Glass Custom Dropdown Menu with High Z-Index & Solid Dark Background */}
       {isOpen && (
-        <div className="absolute right-2 top-[calc(100%+4px)] z-50 min-w-[130px] rounded-xl bg-[#181922] border border-[#2e3142] p-1.5 shadow-2xl shadow-black/90 backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150">
+        <div className="absolute right-0 top-[calc(100%+6px)] z-[999] min-w-[140px] rounded-xl bg-[#12141f] border border-white/20 p-1.5 shadow-[0_20px_45px_rgba(0,0,0,0.95)] animate-in fade-in-50 zoom-in-95 duration-150">
           {options.map((opt) => {
             const isSelected = opt.value === value;
             return (
@@ -444,11 +458,10 @@ function CustomDropdownRow({ label, value, options, onChange }: CustomDropdownRo
                   onChange(opt.value);
                   setIsOpen(false);
                 }}
-                className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
-                  isSelected
+                className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors ${isSelected
                     ? "bg-[#c8a96e]/20 text-[#f2e2be] font-semibold"
                     : "text-[#9ca3af] hover:text-white hover:bg-white/5"
-                }`}
+                  }`}
               >
                 <span>{opt.label}</span>
                 {isSelected && <Check className="w-3.5 h-3.5 text-[#c8a96e]" />}
@@ -485,16 +498,16 @@ function ScrubberRow({
   const percent = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
 
   return (
-    <div className="relative flex items-center justify-between h-[46px] px-4 rounded-xl bg-[#191a21] border border-[#242631] hover:border-[#323545] transition-colors overflow-hidden group select-none">
+    <div className="relative flex items-center justify-between h-[46px] px-4 rounded-xl bg-white/[0.035] hover:bg-white/[0.06] backdrop-blur-md border border-white/[0.07] hover:border-white/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200 overflow-hidden group select-none">
       {/* Label */}
-      <span className="text-[13px] font-medium text-[#8c919e] shrink-0 pointer-events-none">
+      <span className="text-[13px] font-medium text-[#9399ab] shrink-0 pointer-events-none">
         {label}
       </span>
 
       {/* Scrubber Area in the middle/right */}
       <div className="relative flex items-center justify-end flex-1 ml-4 h-full">
         {/* Subtle background ruler ticks */}
-        <div className="absolute inset-y-0 right-[72px] left-2 flex items-center justify-between pointer-events-none opacity-20">
+        <div className="absolute inset-y-0 right-[72px] left-2 flex items-center justify-between pointer-events-none opacity-25">
           <span className="w-[1px] h-2 bg-white/40" />
           <span className="w-[1px] h-1.5 bg-white/30" />
           <span className="w-[1px] h-2 bg-white/40" />
@@ -505,7 +518,7 @@ function ScrubberRow({
         {/* Indicator cursor bar */}
         <div className="absolute right-[72px] left-2 h-full flex items-center pointer-events-none">
           <div
-            className="w-[2px] h-4 bg-[#7a8194] group-hover:bg-[#a6adbe] rounded-full transition-all duration-75 shadow-sm"
+            className="w-[2px] h-4 bg-[#7a8194] group-hover:bg-[#c8a96e] rounded-full transition-all duration-75 shadow-[0_0_6px_rgba(200,169,110,0.4)]"
             style={{
               marginLeft: `calc(${percent}% - 1px)`,
             }}
@@ -524,7 +537,7 @@ function ScrubberRow({
         />
 
         {/* Formatted Value on the Right */}
-        <div className="text-[13px] font-medium text-[#e4e7ee] min-w-[56px] text-right font-mono pointer-events-none z-0">
+        <div className="text-[13px] font-medium text-[#edf0f7] min-w-[56px] text-right font-mono pointer-events-none z-0">
           <span>{formatValue ? formatValue(value) : `${value}${suffix}`}</span>
         </div>
       </div>
@@ -542,20 +555,20 @@ function ToggleRow({ label, checked, onChange }: ToggleRowProps) {
   return (
     <div
       onClick={() => onChange(!checked)}
-      className="flex items-center justify-between h-[46px] px-4 rounded-xl bg-[#191a21] border border-[#242631] hover:border-[#323545] cursor-pointer transition-colors select-none"
+      className="flex items-center justify-between h-[46px] px-4 rounded-xl bg-white/[0.035] hover:bg-white/[0.06] backdrop-blur-md border border-white/[0.07] hover:border-white/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] cursor-pointer transition-all duration-200 select-none"
     >
-      <span className="text-[13px] font-medium text-[#8c919e]">{label}</span>
+      <span className="text-[13px] font-medium text-[#9399ab]">{label}</span>
       <div
-        className={`w-11 h-6 rounded-full relative transition-colors duration-200 ease-in-out ${
-          checked ? "bg-white" : "bg-[#21232c]"
-        }`}
+        className={`w-11 h-6 rounded-full relative transition-all duration-200 ease-in-out ${checked
+            ? "bg-gradient-to-r from-[#d4af37] to-[#e6ca65] shadow-[0_0_12px_rgba(212,175,55,0.35)]"
+            : "bg-white/[0.08] border border-white/[0.08]"
+          }`}
       >
         <span
-          className={`w-4 h-4 rounded-full absolute top-1 transition-all duration-200 ease-in-out ${
-            checked
-              ? "left-6 bg-[#121319] shadow-sm"
-              : "left-1 bg-[#565a6c]"
-          }`}
+          className={`w-4 h-4 rounded-full absolute top-1 transition-all duration-200 ease-in-out ${checked
+              ? "left-6 bg-[#0c0e15] shadow-sm"
+              : "left-1 bg-[#616679]"
+            }`}
         />
       </div>
     </div>
@@ -570,8 +583,8 @@ interface ColorRowProps {
 
 function ColorRow({ label, value, onChange }: ColorRowProps) {
   return (
-    <div className="flex items-center justify-between h-[46px] px-4 rounded-xl bg-[#191a21] border border-[#242631] hover:border-[#323545] transition-colors select-none">
-      <span className="text-[13px] font-medium text-[#8c919e]">{label}</span>
+    <div className="flex items-center justify-between h-[46px] px-4 rounded-xl bg-white/[0.035] hover:bg-white/[0.06] backdrop-blur-md border border-white/[0.07] hover:border-white/[0.15] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200 select-none">
+      <span className="text-[13px] font-medium text-[#9399ab]">{label}</span>
       <div className="flex items-center gap-2.5">
         <label className="relative cursor-pointer">
           <input
@@ -581,7 +594,7 @@ function ColorRow({ label, value, onChange }: ColorRowProps) {
             className="sr-only"
           />
           <div
-            className="w-5 h-5 rounded-[5px] border border-white/10 shadow-sm transition-transform hover:scale-105"
+            className="w-5 h-5 rounded-[5px] border border-white/20 shadow-sm transition-transform hover:scale-105"
             style={{ backgroundColor: value }}
           />
         </label>
@@ -590,7 +603,7 @@ function ColorRow({ label, value, onChange }: ColorRowProps) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           maxLength={7}
-          className="w-[66px] bg-transparent text-[#e4e7ee] text-[13px] font-mono font-medium outline-none text-right uppercase"
+          className="w-[66px] bg-transparent text-[#edf0f7] text-[13px] font-mono font-medium outline-none text-right uppercase"
         />
       </div>
     </div>

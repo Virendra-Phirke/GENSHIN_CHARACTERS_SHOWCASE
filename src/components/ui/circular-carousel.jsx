@@ -216,7 +216,8 @@ const CircularCarousel = ({
   const layout = PRESETS[shape];
   const axis = layout.axis;
   const tiltValue = tilt ?? layout.tilt;
-  const curveValue = layout.billboard ? 0 : clamp(curve ?? layout.curve, 0, 1);
+  const curveValue = clamp(curve ?? layout.curve, 0, 1);
+  const tileCurve = layout.billboard ? 0 : curveValue;
   const reduced = usePrefersReducedMotion();
 
   const cardW = Math.max(40, cardWidth);
@@ -241,9 +242,9 @@ const CircularCarousel = ({
   }, [count, along, gap, curveValue, layout.spread]);
 
   const tiles = useMemo(() => {
-    const total = curveValue > 0.001 ? TILES : 1;
+    const total = tileCurve > 0.001 ? TILES : 1;
     const length = along / total;
-    const bend = curveValue > 0.001 ? radius / curveValue : 0;
+    const bend = tileCurve > 0.001 ? radius / tileCurve : 0;
     return Array.from({ length: total }, (_, index) => {
       const start = index * length - (index > 0 ? OVERLAP / 2 : 0);
       const end = (index + 1) * length + (index < total - 1 ? OVERLAP / 2 : 0);
@@ -259,13 +260,14 @@ const CircularCarousel = ({
           : `translate3d(${shift}px, 0px, ${depth}px) rotateY(${turn}deg)`;
       return { index, total, start, end, size: end - start, move };
     });
-  }, [along, axis, curveValue, layout.inward, radius]);
+  }, [along, axis, tileCurve, layout.inward, radius]);
 
   const rootRef = useRef(null);
   const stageRef = useRef(null);
   const cameraRef = useRef(null);
   const ringRef = useRef(null);
   const cardRefs = useRef([]);
+  const interactionTimerRef = useRef(null);
   const wakeRef = useRef(() => {});
   const measureRef = useRef(() => {});
   const activeRef = useRef(0);
@@ -397,6 +399,35 @@ const CircularCarousel = ({
     return () => clearTimeout(timer);
   }, [leaving]);
 
+  const resetInteractionTimer = useCallback(() => {
+    if (interactionTimerRef.current) {
+      clearTimeout(interactionTimerRef.current);
+    }
+    interactionTimerRef.current = setTimeout(() => {
+      const state = stateRef.current;
+      state.hover = false;
+      state.holdUntil = 0;
+      state.dir = directionSign;
+      if (state.target !== null && Math.abs(state.target - state.angle) < 1.5) {
+        state.target = null;
+      }
+      wakeRef.current();
+    }, 2200);
+  }, [directionSign]);
+
+  const resetInteractionTimerRef = useRef(resetInteractionTimer);
+  useEffect(() => {
+    resetInteractionTimerRef.current = resetInteractionTimer;
+  }, [resetInteractionTimer]);
+
+  useEffect(() => {
+    return () => {
+      if (interactionTimerRef.current) {
+        clearTimeout(interactionTimerRef.current);
+      }
+    };
+  }, []);
+
   useLayoutEffect(() => {
     const root = rootRef.current;
     const stage = stageRef.current;
@@ -499,6 +530,7 @@ const CircularCarousel = ({
         }
       }
 
+      if (!state.dir) state.dir = directionSign || -1;
       const paused = (s.pauseOnHover && state.hover) || state.drag || now < state.holdUntil;
       const cruise = s.autoplay === 'drift' && !paused && !state.intro ? s.speed * state.dir : 0;
       let busy = Boolean(state.intro) || state.drag;
@@ -669,6 +701,7 @@ const CircularCarousel = ({
         if (settingsRef.current.snap) state.target = nearest(state.angle + state.velocity * 0.12);
         wake();
       }, 140);
+      resetInteractionTimerRef.current();
       wake();
     };
     root.addEventListener('wheel', onWheel, { passive: false });
@@ -704,8 +737,9 @@ const CircularCarousel = ({
     target += 360 * Math.round((state.angle - target) / 360);
     state.target = target;
     state.holdUntil = performance.now() + 2800;
+    resetInteractionTimer();
     wakeRef.current();
-  }, []);
+  }, [resetInteractionTimer]);
 
   const stepBy = useCallback(delta => {
     const state = stateRef.current;
@@ -713,8 +747,9 @@ const CircularCarousel = ({
     const base = state.target ?? Math.round(state.angle / s.step) * s.step;
     state.target = base - delta * s.step * (s.layout.inward ? -1 : 1);
     state.holdUntil = performance.now() + 2800;
+    resetInteractionTimer();
     wakeRef.current();
-  }, []);
+  }, [resetInteractionTimer]);
 
   const updatePointer = event => {
     const rect = rootRef.current.getBoundingClientRect();
@@ -726,6 +761,7 @@ const CircularCarousel = ({
   const handlePointerDown = event => {
     const state = stateRef.current;
     state.suppressClick = false;
+    resetInteractionTimer();
     if (!draggable || event.button !== 0) return;
     state.press = {
       id: event.pointerId,
@@ -743,7 +779,11 @@ const CircularCarousel = ({
     if (event.pointerType === 'mouse') {
       state.pointer.inside = true;
       updatePointer(event);
+      if (settingsRef.current.pauseOnHover) {
+        state.hover = true;
+      }
     }
+    resetInteractionTimer();
     const press = state.press;
     if (!press || press.id !== event.pointerId) {
       wakeRef.current();
@@ -797,12 +837,16 @@ const CircularCarousel = ({
       const tau = 0.18 + s.momentum * 1.5;
       state.target = Math.round((state.angle + velocity * tau * 0.55) / s.step) * s.step;
     }
+    resetInteractionTimer();
     wakeRef.current();
   };
 
   const handlePointerEnter = event => {
     if (event.pointerType !== 'mouse') return;
-    stateRef.current.hover = true;
+    if (settingsRef.current.pauseOnHover) {
+      stateRef.current.hover = true;
+    }
+    resetInteractionTimer();
     wakeRef.current();
   };
 
@@ -812,11 +856,15 @@ const CircularCarousel = ({
       state.hover = false;
       state.pointer.inside = false;
     }
+    if (interactionTimerRef.current) {
+      clearTimeout(interactionTimerRef.current);
+    }
     wakeRef.current();
   };
 
   const handleClick = event => {
     const state = stateRef.current;
+    resetInteractionTimer();
     if (state.suppressClick) {
       state.suppressClick = false;
       return;
@@ -837,6 +885,7 @@ const CircularCarousel = ({
     else if (event.key === 'End') focusIndex(count - 1);
     else if (event.key === 'Enter' || event.key === ' ') onItemClick?.(list[activeRef.current], activeRef.current);
     else return;
+    resetInteractionTimer();
     event.preventDefault();
   };
 

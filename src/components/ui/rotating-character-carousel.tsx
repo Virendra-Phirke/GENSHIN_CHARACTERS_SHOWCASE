@@ -15,7 +15,7 @@ interface RotatingCharacterCarouselProps {
   onSelectCharacter: (character: ShowcaseCharacter) => void;
 }
 
-const STORAGE_KEY = "genshin_carousel_custom_config_v1";
+const STORAGE_KEY = "genshin_carousel_custom_config_v4";
 
 const ELEMENT_COLORS: Record<string, { accent: string; bg: string; glow: string }> = {
   Cryo: { accent: "#9ed8e9", bg: "rgba(158,216,233,.12)", glow: "rgba(158,216,233,.38)" },
@@ -39,6 +39,9 @@ export default function RotatingCharacterCarousel({
   // Initialize from localStorage if saved
   useEffect(() => {
     try {
+      localStorage.removeItem("genshin_carousel_custom_config_v1");
+      localStorage.removeItem("genshin_carousel_custom_config_v2");
+      localStorage.removeItem("genshin_carousel_custom_config_v3");
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -130,8 +133,8 @@ export default function RotatingCharacterCarousel({
             onClick={() => setShowCustomizer((prev) => !prev)}
             className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-medium transition-all duration-300 shadow-sm ${
               showCustomizer
-                ? "bg-[#c8a96e]/20 border-[#c8a96e] text-[#f2e2be] shadow-[0_0_16px_rgba(200,169,110,0.3)] ring-1 ring-[#c8a96e]/40"
-                : "bg-[#14161f] border-[#292c3d] text-[#b0b7c6] hover:text-white hover:border-[#3f435c] hover:bg-[#1a1d29]"
+                ? "bg-[#c8a96e]/20 border-[#c8a96e] text-[#f2e2be] shadow-[0_0_16px_rgba(200,169,110,0.3)] ring-1 ring-[#c8a96e]/40 backdrop-blur-xl"
+                : "bg-white/[0.04] backdrop-blur-xl border-white/[0.08] text-[#b0b7c6] hover:text-white hover:border-white/20 hover:bg-white/[0.08]"
             }`}
             title="Modify 3D Circular Carousel settings"
           >
@@ -159,7 +162,7 @@ export default function RotatingCharacterCarousel({
       )}
 
       {/* 3D Panorama CircularCarousel Stage */}
-      <div className="relative w-full h-[480px] sm:h-[540px] flex items-center justify-center">
+      <div className="relative w-full h-[520px] sm:h-[600px] lg:h-[640px] flex items-center justify-center">
         {/* Ambient Element Backdrop Glow */}
         <div
           className="carousel-ambient-stage absolute inset-x-0 top-1/2 -translate-y-1/2 h-[340px] w-full max-w-4xl mx-auto rounded-full blur-[100px] pointer-events-none transition-all duration-700 opacity-40"
