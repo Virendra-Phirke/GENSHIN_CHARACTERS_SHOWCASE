@@ -1,8 +1,13 @@
 "use client";
 
+/*
+ * From Uiverse.io by musashi-13 - https://uiverse.io/musashi-13/strange-eel-100
+ * MIT License, Copyright (c) musashi-13 (Karan Hathwar)
+ */
+
 import Image from "next/image";
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Pause, Play } from "lucide-react";
 import type { ShowcaseCharacter } from "@/lib/types";
 
 interface RotatingCharacterCarouselProps {
@@ -26,25 +31,8 @@ export default function RotatingCharacterCarousel({
   activeCharacterId,
   onSelectCharacter,
 }: RotatingCharacterCarouselProps) {
-  const [prevActiveId, setPrevActiveId] = useState(activeCharacterId);
-  const [currentIndex, setCurrentIndex] = useState(() => {
-    const idx = characters.findIndex((c) => c.id === activeCharacterId);
-    return idx >= 0 ? idx : 0;
-  });
-
-  if (prevActiveId !== activeCharacterId) {
-    setPrevActiveId(activeCharacterId);
-    const idx = characters.findIndex((c) => c.id === activeCharacterId);
-    if (idx >= 0) {
-      setCurrentIndex(idx);
-    }
-  }
-
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-
-  // Touch swipe support
-  const touchStartXRef = useRef<number | null>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
@@ -53,78 +41,20 @@ export default function RotatingCharacterCarousel({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const handleNext = useCallback(() => {
-    if (!characters.length) return;
-    setCurrentIndex((prev) => (prev + 1) % characters.length);
-  }, [characters.length]);
-
-  const handlePrev = useCallback(() => {
-    if (!characters.length) return;
-    setCurrentIndex((prev) => (prev - 1 + characters.length) % characters.length);
-  }, [characters.length]);
-
-  const selectCharacterByIndex = useCallback(
-    (index: number) => {
-      if (!characters.length) return;
-      const normalizedIndex = (index + characters.length) % characters.length;
-      setCurrentIndex(normalizedIndex);
-      const target = characters[normalizedIndex];
-      if (target) {
-        onSelectCharacter(target);
-      }
-    },
-    [characters, onSelectCharacter]
-  );
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") handlePrev();
-      if (e.key === "ArrowRight") handleNext();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNext, handlePrev]);
-
-  // Smooth continuous right-to-left auto-rotation
-  useEffect(() => {
-    if (!isAutoPlaying || characters.length <= 1) return;
-    const interval = setInterval(() => {
-      handleNext();
-    }, 2800);
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, characters.length, handleNext]);
-
-  // Touch swipe handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartXRef.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
-    if (Math.abs(deltaX) > 40) {
-      if (deltaX < 0) handleNext();
-      else handlePrev();
-    }
-    touchStartXRef.current = null;
-  };
-
-  const activeChar = characters[currentIndex] ?? characters[0];
+  const activeChar =
+    characters.find((c) => c.id === activeCharacterId) || characters[0];
   const activeElement = ELEMENT_COLORS[activeChar?.element || ""] ?? {
     accent: "#c8a96e",
     bg: "rgba(200,169,110,.12)",
     glow: "rgba(200,169,110,.35)",
   };
 
-  const maxVisibleOffset = Math.min(3, Math.floor((characters.length - 1) / 2));
+  const total = characters.length;
+  const radius = isMobile ? 220 : 320;
+  const durationSeconds = 24;
 
   return (
-    <div
-      className="rotating-carousel-container relative w-full overflow-hidden py-8 select-none"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="rotating-carousel-container relative w-full overflow-hidden py-8 select-none">
       {/* Carousel Top Controls & Active Indicator */}
       <div className="carousel-header mb-6 flex flex-wrap items-center justify-between gap-4 px-4 sm:px-8">
         <div className="carousel-title-wrap flex items-center gap-3">
@@ -142,149 +72,92 @@ export default function RotatingCharacterCarousel({
           </div>
         </div>
 
-        {/* Auto-Play and Chevrons */}
+        {/* Play/Pause Toggle */}
         <div className="carousel-controls flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+            onClick={() => setIsPaused((prev) => !prev)}
             className={`carousel-ctrl-btn p-2 rounded-full border transition-colors ${
-              isAutoPlaying
+              !isPaused
                 ? "border-[#c8a96e] bg-[#c8a96e]/15 text-[#f3dfbd]"
                 : "border-white/10 bg-white/5 text-[#9ba6b6] hover:border-white/20 hover:text-white"
             }`}
-            title={isAutoPlaying ? "Pause auto-rotation" : "Enable right-to-left rotation"}
-            aria-label={isAutoPlaying ? "Pause auto-rotation" : "Enable right-to-left rotation"}
+            title={!isPaused ? "Pause 3D rotation" : "Resume 3D rotation"}
+            aria-label={!isPaused ? "Pause 3D rotation" : "Resume 3D rotation"}
           >
-            {isAutoPlaying ? <Pause size={14} /> : <Play size={14} />}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              const prev = (currentIndex - 1 + characters.length) % characters.length;
-              selectCharacterByIndex(prev);
-            }}
-            className="carousel-ctrl-btn p-2 rounded-full border border-white/10 bg-white/5 text-[#d1d8e2] hover:border-[#c8a96e] hover:text-[#f3dfbd] transition-colors"
-            title="Previous character (Left Arrow)"
-            aria-label="Previous character"
-          >
-            <ChevronLeft size={16} />
-          </button>
-
-          <span className="carousel-counter text-xs font-mono text-[#8a96a7] px-1">
-            {String(currentIndex + 1).padStart(2, "0")} / {String(characters.length).padStart(2, "0")}
-          </span>
-
-          <button
-            type="button"
-            onClick={() => {
-              const next = (currentIndex + 1) % characters.length;
-              selectCharacterByIndex(next);
-            }}
-            className="carousel-ctrl-btn p-2 rounded-full border border-white/10 bg-white/5 text-[#d1d8e2] hover:border-[#c8a96e] hover:text-[#f3dfbd] transition-colors"
-            title="Next character (Right Arrow)"
-            aria-label="Next character"
-          >
-            <ChevronRight size={16} />
+            {!isPaused ? <Pause size={14} /> : <Play size={14} />}
           </button>
         </div>
       </div>
 
-      {/* 3D Rotating Cards Stage */}
-      <div className="carousel-3d-stage relative h-[380px] sm:h-[440px] w-full flex items-center justify-center">
-        {/* Ambient Element Backdrop */}
+      {/* 3D Rotating Stage - Adapted from Uiverse.io Strange Eel 100 */}
+      <div className="card-3d-stage">
+        {/* Ambient Element Backdrop Glow */}
         <div
-          className="carousel-ambient-stage absolute inset-x-0 top-1/2 -translate-y-1/2 h-[320px] w-full max-w-4xl mx-auto rounded-full blur-[85px] pointer-events-none transition-all duration-700 opacity-45"
+          className="carousel-ambient-stage absolute inset-x-0 top-1/2 -translate-y-1/2 h-[320px] w-full max-w-4xl mx-auto rounded-full blur-[90px] pointer-events-none transition-all duration-700 opacity-40"
           style={{ background: activeElement.glow }}
         />
 
-        {characters.map((char, index) => {
-          const total = characters.length;
-          let offset = index - currentIndex;
-          if (offset > total / 2) offset -= total;
-          if (offset < -total / 2) offset += total;
+        <div className={`card-3d ${isPaused ? "is-paused" : ""}`}>
+          {characters.map((char, index) => {
+            const angle = (index * 360) / total;
+            const delay = -((index * durationSeconds) / total);
+            const isCurrent = char.id === activeCharacterId;
 
-          // Only render visible cards within max radius to avoid wrap flips
-          const isVisible = Math.abs(offset) <= maxVisibleOffset;
-          if (!isVisible) return null;
+            return (
+              <div
+                key={char.id}
+                className={`card-3d-card ${isCurrent ? "is-active-card ring-2 ring-[#c8a96e]" : ""}`}
+                style={{
+                  transform: `translate(-50%, -50%) rotateY(${angle}deg) translateZ(${radius}px)`,
+                  animationDelay: `${delay.toFixed(2)}s`,
+                }}
+                onClick={() => onSelectCharacter(char)}
+                title={`Select ${char.name}`}
+              >
+                {/* Character Card Background Image */}
+                <div className="relative w-full h-full bg-[#111722] overflow-hidden">
+                  {char.image ? (
+                    <Image
+                      src={char.image}
+                      alt={char.name}
+                      fill
+                      unoptimized
+                      sizes="220px"
+                      quality={85}
+                      priority={index <= 2}
+                      className="object-cover object-top transition-transform duration-300 hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full grid place-items-center text-4xl text-[#c8a96e]/30">✦</div>
+                  )}
 
-          const isCurrent = offset === 0;
-          const charElement = ELEMENT_COLORS[char.element || ""] ?? {
-            accent: "#c8a96e",
-            bg: "rgba(200,169,110,.12)",
-            glow: "rgba(200,169,110,.35)",
-          };
+                  {/* Vignette Gradients */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f16] via-[#0b0f16]/30 to-transparent pointer-events-none" />
 
-          // 3D Transform calculations for smooth right-to-left rotation
-          const rotateY = offset * 28;
-          const translateX = offset * (isMobile ? 120 : 190);
-          const translateZ = -Math.abs(offset) * 130;
-          const scale = Math.max(0.66, 1 - Math.abs(offset) * 0.12);
-          const opacity = isCurrent
-            ? 1
-            : Math.max(0.25, 1 - Math.abs(offset) * 0.28);
-          const zIndex = 25 - Math.abs(offset);
-
-          return (
-            <div
-              key={char.id}
-              className={`carousel-card-item absolute cursor-pointer rounded-lg overflow-hidden select-none transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
-                isCurrent ? "is-active-card ring-2 ring-[#c8a96e]/70" : "hover:brightness-110"
-              }`}
-              style={{
-                width: isMobile ? "210px" : "270px",
-                height: isMobile ? "320px" : "390px",
-                zIndex,
-                transform: `perspective(1100px) translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
-                opacity,
-                boxShadow: isCurrent
-                  ? `0 24px 50px rgba(0,0,0,0.65), 0 0 35px ${charElement.glow}`
-                  : "0 14px 30px rgba(0,0,0,0.5)",
-              }}
-              onClick={() => selectCharacterByIndex(index)}
-            >
-              {/* Character Card Background Image */}
-              <div className="relative w-full h-full bg-[#111722] overflow-hidden">
-                {char.image ? (
-                  <Image
-                    src={char.image}
-                    alt={char.name}
-                    fill
-                    unoptimized
-                    sizes="270px"
-                    quality={85}
-                    priority={isCurrent || Math.abs(offset) <= 1}
-                    className="object-cover object-top transition-transform duration-500 ease-out hover:scale-105"
-                  />
-                ) : (
-                  <div className="w-full h-full grid place-items-center text-4xl text-[#c8a96e]/30">✦</div>
-                )}
-
-                {/* Vignette Gradients */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0e141f] via-[#0e141f]/35 to-transparent pointer-events-none" />
-
-                {/* Card Bottom - Only Character Name */}
-                <div className="absolute bottom-0 inset-x-0 p-4 z-10 bg-gradient-to-t from-[#0b0f16] via-[#0b0f16]/90 to-transparent">
-                  <h4 className="text-base sm:text-lg font-semibold text-[#f1f3f7] tracking-tight truncate text-center">
-                    {char.name}
-                  </h4>
+                  {/* Card Bottom - Only Character Name */}
+                  <div className="absolute bottom-0 inset-x-0 p-3 z-10 bg-gradient-to-t from-[#0b0f16] via-[#0b0f16]/95 to-transparent">
+                    <h4 className="text-sm sm:text-base font-semibold text-[#f1f3f7] tracking-tight truncate text-center">
+                      {char.name}
+                    </h4>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Quick Jump Character Thumbnails Bar */}
       <div className="carousel-thumbnails-bar mt-6 flex items-center justify-center gap-2 px-4 overflow-x-auto scrollbar-none">
-        {characters.map((c, i) => {
-          const isActive = i === currentIndex;
+        {characters.map((c) => {
+          const isActive = c.id === activeCharacterId;
           const cElem = ELEMENT_COLORS[c.element || ""] ?? { accent: "#c8a96e" };
           return (
             <button
               key={c.id}
               type="button"
-              onClick={() => selectCharacterByIndex(i)}
+              onClick={() => onSelectCharacter(c)}
               className={`thumb-nav-btn relative flex items-center gap-2 px-3 py-1.5 rounded border transition-all duration-200 text-xs ${
                 isActive
                   ? "bg-[#c8a96e]/20 border-[#c8a96e] text-[#f2e2be] shadow-[0_0_12px_rgba(200,169,110,0.25)] font-semibold"

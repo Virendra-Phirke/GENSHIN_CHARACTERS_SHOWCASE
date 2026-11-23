@@ -1512,9 +1512,99 @@
   50% { transform: scale(1.35); opacity: 1; }
 }
 
+/*
+ * From Uiverse.io by musashi-13 - https://uiverse.io/musashi-13/strange-eel-100
+ * MIT License, Copyright (c) musashi-13 (Karan Hathwar)
+ */
+
+@keyframes autoRun3d {
+  from {
+    transform: perspective(900px) rotateY(-360deg);
+  }
+  to {
+    transform: perspective(900px) rotateY(0deg);
+  }
+}
+
+@keyframes animateBrightness {
+  10% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(0.22);
+  }
+  90% {
+    filter: brightness(1);
+  }
+}
+
 .carousel-3d-stage {
-  perspective: 1200px;
+  perspective: 900px;
   transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 380px;
+  position: relative;
+}
+
+.card-3d {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  height: 320px;
+  transform-style: preserve-3d;
+  transform: perspective(900px);
+  animation: autoRun3d 24s linear infinite;
+  will-change: transform;
+}
+
+.card-3d-card {
+  position: absolute;
+  width: 160px;
+  height: 240px;
+  border-radius: 0.75rem;
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+  animation: animateBrightness 24s linear infinite;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+  will-change: transform, filter;
+  cursor: pointer;
+  border: solid 2px rgba(255, 255, 255, 0.15);
+  background: #111722;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+@media (min-width: 640px) {
+  .card-3d {
+    height: 380px;
+  }
+  .card-3d-card {
+    width: 195px;
+    height: 290px;
+  }
+}
+
+.card-3d:hover,
+.card-3d.is-paused {
+  animation-play-state: paused !important;
+}
+
+.card-3d:hover .card-3d-card,
+.card-3d.is-paused .card-3d-card {
+  animation-play-state: paused !important;
+}
+
+.card-3d-card.is-active-card {
+  border-color: #c8a96e !important;
+  box-shadow: 0 0 25px rgba(200, 169, 110, 0.5), 0 15px 35px rgba(0, 0, 0, 0.8) !important;
+}
+
+.card-3d-card:hover {
+  filter: brightness(1.15) !important;
+  border-color: rgba(200, 169, 110, 0.9) !important;
 }
 
 .carousel-card-item {
