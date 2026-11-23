@@ -24,7 +24,6 @@ import StatRadarChart from "@/components/ui/stat-radar-chart";
 import ConstellationStarMap from "@/components/ui/constellation-star-map";
 import ArtifactRollInspector from "@/components/ui/artifact-roll-inspector";
 import ParallaxHeroArt from "@/components/ui/parallax-hero-art";
-import SectionConstellationNav from "@/components/ui/section-constellation-nav";
 import ShareBuildCardModal from "@/components/ui/share-build-card-modal";
 
 // ---------------------------------------------------------------------------
@@ -458,9 +457,6 @@ export default function UnifiedShowcaseView({
     >
       {/* Dynamic Celestial Stardust Canvas */}
       <CelestialBackground elementAccent={elementTheme.accent} element={activeCharacter.element} />
-
-      {/* Feature 8: Section Scroll Progress Constellation Line */}
-      <SectionConstellationNav elementColor={elementTheme.accent} elementGlow={elementTheme.glow} />
 
       {/* Top Ambient Elemental Aurora */}
       <div
