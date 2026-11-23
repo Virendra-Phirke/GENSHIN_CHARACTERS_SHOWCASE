@@ -536,7 +536,7 @@ export default function UnifiedShowcaseView({
               elementAccent={elementTheme.accent}
               elementGlow={elementTheme.glow}
               loreQuote={currentLoreQuote}
-              onImageError={() => setFailedSplash(splashSrc)}
+              onImageError={() => setFailedSplash(splashSrc ?? null)}
             />
 
             {/* Right: Identity, Constellations, Lore, and Quick Summary Bento */}
@@ -665,29 +665,73 @@ export default function UnifiedShowcaseView({
               </div>
             </div>
 
-            <div className="build-details-grid">
+            {/* Feature 5: Fluid Inertia Scroll with Dynamic Velocity Tilt */}
+            <div
+              className="build-details-grid"
+              style={{
+                perspective: "1200px",
+                transform: `rotateX(${velocityTilt}deg)`,
+                transition: "transform 0.15s ease-out",
+              }}
+            >
               {/* 1. Combat Attributes & Stat Radar Panel */}
-              <section className="build-panel combat-panel">
+              <section id="section-combat" className="build-panel combat-panel">
                 <div className="panel-header">
                   <span className="build-panel-label">
                     <Zap size={13} /> COMBAT ATTRIBUTES
                   </span>
-                  <span className="panel-badge">LIVE VALUES</span>
+
+                  {/* Feature 15: Elemental Infusion Mode Switcher (Solo Base vs Team Resonance) */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center p-0.5 rounded-lg bg-black/40 border border-white/10 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => setIsResonanceActive(false)}
+                        className={`px-2 py-0.5 rounded-md font-medium transition-all ${
+                          !isResonanceActive
+                            ? "bg-white/15 text-white shadow-sm"
+                            : "text-[#828e9f] hover:text-white"
+                        }`}
+                      >
+                        Base / Solo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsResonanceActive(true)}
+                        className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-bold transition-all ${
+                          isResonanceActive
+                            ? "bg-gradient-to-r from-[#d4af37] to-[#e6ca65] text-[#0d1017] shadow-[0_0_10px_rgba(212,175,55,0.4)]"
+                            : "text-[#828e9f] hover:text-[#c8a96e]"
+                        }`}
+                      >
+                        <Flame className="w-2.5 h-2.5" />
+                        <span>Resonance</span>
+                      </button>
+                    </div>
+                    <span className="panel-badge hidden sm:inline">
+                      {isResonanceActive ? "BUFFED" : "LIVE"}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                  {/* Left Column: Attribute Numbers */}
+                  {/* Left Column: Attribute Numbers with Feature 6: CountUp Animation */}
                   <div className="build-stat-grid !grid-cols-1">
-                    {activeCharacter.stats.length ? (
-                      activeCharacter.stats.map((stat) => (
+                    {displayStats.length ? (
+                      displayStats.map((stat) => (
                         <div className="build-stat" key={stat.label}>
                           <div className="stat-label-wrap">
                             <span className="stat-name">{stat.label}</span>
                             {stat.detail && (
-                              <small className="build-stat-detail">{stat.detail}</small>
+                              <small className="build-stat-detail text-[#e5be78] font-semibold">
+                                {stat.detail}
+                              </small>
                             )}
                           </div>
-                          <strong className="stat-value">{stat.value}</strong>
+                          {/* Feature 6: Scroll-Driven Stat Counter Animation (CountUp) */}
+                          <strong className="stat-value">
+                            <CountUpStat value={stat.value} />
+                          </strong>
                         </div>
                       ))
                     ) : (
@@ -695,10 +739,10 @@ export default function UnifiedShowcaseView({
                     )}
                   </div>
 
-                  {/* Right Column: Hexagon Stat Radar Chart */}
+                  {/* Right Column: Feature 13: Hexagon Stat Radar Chart with Mouse Repulsion & Tooltips */}
                   <div className="flex justify-center">
                     <StatRadarChart
-                      stats={activeCharacter.stats}
+                      stats={displayStats}
                       elementColor={elementTheme.accent}
                       size={250}
                     />
@@ -715,8 +759,8 @@ export default function UnifiedShowcaseView({
                 </div>
               </section>
 
-              {/* 2. Equipped Weapon Panel with 3D Tilt Card */}
-              <section className="build-panel weapon-panel">
+              {/* 2. Equipped Weapon Panel with Feature 12: Levitation & Radiant Glow */}
+              <section id="section-weapon" className="build-panel weapon-panel">
                 <div className="panel-header">
                   <span className="build-panel-label">
                     <Swords size={13} /> EQUIPPED WEAPON
@@ -729,13 +773,25 @@ export default function UnifiedShowcaseView({
                 {activeCharacter.weapon ? (
                   <TiltCard maxTilt={6}>
                     <div className="weapon-showcase">
-                      <EquipmentArtwork
-                        src={activeCharacter.weapon.icon}
-                        fallbackSrc={activeCharacter.weapon.iconFallback}
-                        alt={activeCharacter.weapon.name || "Weapon"}
-                        rarity={activeCharacter.weapon.rarity}
-                        kind="weapon"
-                      />
+                      {/* Feature 12: 3D Weapon Perspective Levitation with Weapon Glow */}
+                      <div className="relative group">
+                        <div
+                          className="pointer-events-none absolute -inset-2 rounded-2xl opacity-40 blur-lg transition-opacity duration-500 group-hover:opacity-80"
+                          style={{
+                            background: `radial-gradient(circle, #e5bc75 10%, ${elementTheme.glow} 60%, transparent 80%)`,
+                          }}
+                        />
+                        <div className="relative z-10 transition-transform duration-500 hover:scale-105 animate-[bounce_5s_ease-in-out_infinite]">
+                          <EquipmentArtwork
+                            src={activeCharacter.weapon.icon}
+                            fallbackSrc={activeCharacter.weapon.iconFallback}
+                            alt={activeCharacter.weapon.name || "Weapon"}
+                            rarity={activeCharacter.weapon.rarity}
+                            kind="weapon"
+                          />
+                        </div>
+                      </div>
+
                       <div className="weapon-showcase-info">
                         <span className="equipment-kicker">
                           {"★".repeat(activeCharacter.weapon.rarity ?? 4)} WEAPON
@@ -766,8 +822,8 @@ export default function UnifiedShowcaseView({
                 )}
               </section>
 
-              {/* 3. Artifacts Panel (All 5 Slots with Tilt Cards + Roll Inspector) */}
-              <section className="build-panel artifacts-panel">
+              {/* 3. Artifacts Panel (Feature 9: Holographic Foil, Feature 10: Set Resonance Glow, Feature 11: Roll Pips) */}
+              <section id="section-artifacts" className="build-panel artifacts-panel">
                 <div className="panel-header">
                   <div className="panel-header-left">
                     <span className="build-panel-label">
@@ -779,146 +835,189 @@ export default function UnifiedShowcaseView({
                       </span>
                     )}
                   </div>
+
+                  {/* Feature 10: Interactive Artifact Set Resonance Glow on Hover */}
                   <div className="set-bonus-tags">
-                    {activeSetBonuses.map((bonus) => (
-                      <span className="set-bonus-chip" key={bonus.setName}>
-                        {bonus.count}-Piece {bonus.setName}
-                      </span>
-                    ))}
+                    {activeSetBonuses.map((bonus) => {
+                      const isHovered = hoveredSetBonus === bonus.setName;
+                      return (
+                        <span
+                          className={`set-bonus-chip cursor-pointer transition-all duration-200 ${
+                            isHovered
+                              ? "ring-2 ring-[#c8a96e] bg-[#c8a96e]/30 text-[#f7e6ca] shadow-[0_0_14px_rgba(200,169,110,0.55)] scale-105"
+                              : "hover:bg-white/10"
+                          }`}
+                          key={bonus.setName}
+                          onMouseEnter={() => setHoveredSetBonus(bonus.setName)}
+                          onMouseLeave={() => setHoveredSetBonus(null)}
+                        >
+                          {bonus.count}-Piece {bonus.setName}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div className="artifact-build-list">
-                  {activeCharacter.artifacts.map((artifact, index) => (
-                    <TiltCard maxTilt={5} key={`${artifact.slot}-${index}`}>
-                      <article className="artifact-build-item h-full flex flex-col justify-between">
-                        <div>
-                          <div className="artifact-visual-row">
-                            <EquipmentArtwork
-                              src={artifact.icon}
-                              fallbackSrc={artifact.iconFallback}
-                              alt={artifact.name || `${artifact.slot} artifact`}
-                              rarity={artifact.rarity}
-                              kind="artifact"
-                            />
-                            <div className="artifact-build-top">
-                              <div className="artifact-slot-badge">{artifact.slot}</div>
-                              <h3>{artifact.name || `${artifact.setName || "Artifact"} · ${artifact.slot}`}</h3>
-                              <p className="artifact-set-name">{artifact.setName || "Artifact Set"}</p>
-                            </div>
-                            <div className="artifact-level-badge">
-                              +{artifact.level ?? 0}
-                            </div>
-                          </div>
+                  {activeCharacter.artifacts.map((artifact, index) => {
+                    const isSetResonant = Boolean(
+                      hoveredSetBonus && artifact.setName === hoveredSetBonus
+                    );
 
-                          {/* Main Stat */}
-                          {artifact.mainStat && (
-                            <div className="artifact-main-stat">
-                              <span className="main-stat-label">{artifact.mainStat.label}</span>
-                              <strong className="main-stat-value">{artifact.mainStat.value}</strong>
-                            </div>
-                          )}
-
-                          {/* Substats Header with individual piece CV */}
-                          <div className="artifact-roll-heading">
-                            <span>SUBSTATS ({artifact.substats.length})</span>
-                            {artifact.critValue != null && (
-                              <span className="piece-cv-badge">{artifact.critValue} CV</span>
-                            )}
-                          </div>
-
-                          {/* 4 Substats */}
-                          <div className="artifact-substats">
-                            {artifact.substats.map((stat, statIndex) => (
-                              <div
-                                className={`artifact-substat-row ${
-                                  stat.label.includes("CRIT") ? "is-crit-stat" : ""
-                                }`}
-                                key={`${stat.label}-${statIndex}`}
-                              >
-                                <span className="substat-label">{stat.label}</span>
-                                <strong className="substat-value">+{stat.value}</strong>
+                    return (
+                      <TiltCard
+                        maxTilt={5}
+                        holographic={true}
+                        key={`${artifact.slot}-${index}`}
+                        onMouseEnter={() => artifact.setName && setHoveredSetBonus(artifact.setName)}
+                        onMouseLeave={() => setHoveredSetBonus(null)}
+                        className={`transition-all duration-300 rounded-xl ${
+                          isSetResonant
+                            ? "ring-2 ring-[#c8a96e] shadow-[0_0_24px_rgba(200,169,110,0.5)] scale-[1.02]"
+                            : ""
+                        }`}
+                      >
+                        <article className="artifact-build-item h-full flex flex-col justify-between">
+                          <div>
+                            <div className="artifact-visual-row">
+                              <EquipmentArtwork
+                                src={artifact.icon}
+                                fallbackSrc={artifact.iconFallback}
+                                alt={artifact.name || `${artifact.slot} artifact`}
+                                rarity={artifact.rarity}
+                                kind="artifact"
+                              />
+                              <div className="artifact-build-top">
+                                <div className="artifact-slot-badge">{artifact.slot}</div>
+                                <h3>{artifact.name || `${artifact.setName || "Artifact"} · ${artifact.slot}`}</h3>
+                                <p className="artifact-set-name">{artifact.setName || "Artifact Set"}</p>
                               </div>
-                            ))}
-                          </div>
-                        </div>
+                              <div className="artifact-level-badge">
+                                +{artifact.level ?? 0}
+                              </div>
+                            </div>
 
-                        {/* Interactive Artifact Roll Inspector Tier Badge & Pips */}
-                        <ArtifactRollInspector artifact={artifact} />
-                      </article>
-                    </TiltCard>
-                  ))}
+                            {/* Main Stat */}
+                            {artifact.mainStat && (
+                              <div className="artifact-main-stat">
+                                <span className="main-stat-label">{artifact.mainStat.label}</span>
+                                <strong className="main-stat-value">{artifact.mainStat.value}</strong>
+                              </div>
+                            )}
+
+                            {/* Substats Header with individual piece CV */}
+                            <div className="artifact-roll-heading">
+                              <span>SUBSTATS ({artifact.substats.length})</span>
+                              {artifact.critValue != null && (
+                                <span className="piece-cv-badge">{artifact.critValue} CV</span>
+                              )}
+                            </div>
+
+                            {/* 4 Substats */}
+                            <div className="artifact-substats">
+                              {artifact.substats.map((stat, statIndex) => (
+                                <div
+                                  className={`artifact-substat-row ${
+                                    stat.label.includes("CRIT") ? "is-crit-stat" : ""
+                                  }`}
+                                  key={`${stat.label}-${statIndex}`}
+                                >
+                                  <span className="substat-label">{stat.label}</span>
+                                  <strong className="substat-value">+{stat.value}</strong>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Feature 11: Substat Roll Upgrade Pips Reveal & Breakdown */}
+                          <ArtifactRollInspector artifact={artifact} />
+                        </article>
+                      </TiltCard>
+                    );
+                  })}
                   {!activeCharacter.artifacts.length && (
                     <p className="build-empty">No equipped artifacts found.</p>
                   )}
                 </div>
               </section>
 
-              {/* 4. Talents Panel */}
-              <section className="build-panel talent-panel">
-                <div className="panel-header">
-                  <span className="build-panel-label">
-                    <Crown size={13} /> TALENT LEVELS
-                  </span>
-                  <span className="panel-badge">COMBAT TALENTS</span>
-                </div>
+              {/* 4. Talents & Constellations Section */}
+              <section id="section-talents" className="contents">
+                {/* Talents Panel */}
+                <div className="build-panel talent-panel">
+                  <div className="panel-header">
+                    <span className="build-panel-label">
+                      <Crown size={13} /> TALENT LEVELS
+                    </span>
+                    <span className="panel-badge">COMBAT TALENTS</span>
+                  </div>
 
-                <div className="talent-cards-grid">
-                  {activeCharacter.talents.length ? (
-                    activeCharacter.talents.map((talent, idx) => (
-                      <div
-                        className={`talent-card ${talent.isCrowned ? "is-crowned" : ""}`}
-                        key={`${talent.name}-${idx}`}
-                      >
-                        <div className="talent-icon-box">
-                          <TalentOrConstIcon
-                            src={talent.icon}
-                            fallbackSrc={talent.iconFallback}
-                            alt={talent.name}
-                          />
-                        </div>
-                        <div className="talent-details">
-                          <span className="talent-type-label">TALENT 0{idx + 1}</span>
-                          <h4 className="talent-name">{talent.name}</h4>
-                          <div className="talent-level-wrap">
-                            <span className="talent-level-number">Lv. {talent.level}</span>
-                            {talent.isCrowned && (
-                              <span className="crowned-badge">
-                                <Crown size={11} /> CROWNED
-                              </span>
-                            )}
+                  <div className="talent-cards-grid">
+                    {activeCharacter.talents.length ? (
+                      activeCharacter.talents.map((talent, idx) => (
+                        <div
+                          className={`talent-card ${talent.isCrowned ? "is-crowned" : ""}`}
+                          key={`${talent.name}-${idx}`}
+                        >
+                          <div className="talent-icon-box">
+                            <TalentOrConstIcon
+                              src={talent.icon}
+                              fallbackSrc={talent.iconFallback}
+                              alt={talent.name}
+                            />
+                          </div>
+                          <div className="talent-details">
+                            <span className="talent-type-label">TALENT 0{idx + 1}</span>
+                            <h4 className="talent-name">{talent.name}</h4>
+                            <div className="talent-level-wrap">
+                              <span className="talent-level-number">Lv. {talent.level}</span>
+                              {talent.isCrowned && (
+                                <span className="crowned-badge">
+                                  <Crown size={11} /> CROWNED
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="build-empty">Talent data is not available.</p>
-                  )}
-                </div>
-              </section>
-
-              {/* 5. Constellations Panel with Interactive Star Map */}
-              <section className="build-panel constellation-panel">
-                <div className="panel-header">
-                  <span className="build-panel-label">
-                    <Sparkles size={13} /> CONSTELLATIONS
-                  </span>
-                  <span className="panel-badge">
-                    {activeCharacter.constellation ?? 0} / 6 ACTIVATED
-                  </span>
+                      ))
+                    ) : (
+                      <p className="build-empty">Talent data is not available.</p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Celestial Star Map Sky Atlas */}
-                <ConstellationStarMap
-                  constellations={activeCharacter.constellations}
-                  elementColor={elementTheme.accent}
-                  elementGlow={elementTheme.glow}
-                />
+                {/* 5. Constellations Panel with Interactive Star Map */}
+                <div className="build-panel constellation-panel">
+                  <div className="panel-header">
+                    <span className="build-panel-label">
+                      <Sparkles size={13} /> CONSTELLATIONS
+                    </span>
+                    <span className="panel-badge">
+                      {activeCharacter.constellation ?? 0} / 6 ACTIVATED
+                    </span>
+                  </div>
+
+                  {/* Celestial Star Map Sky Atlas */}
+                  <ConstellationStarMap
+                    constellations={activeCharacter.constellations}
+                    elementColor={elementTheme.accent}
+                    elementGlow={elementTheme.glow}
+                  />
+                </div>
               </section>
             </div>
           </section>
         </div>
       </main>
+
+      {/* Feature 20: One-Click Share Build Card Snapshot Modal */}
+      <ShareBuildCardModal
+        character={activeCharacter}
+        profile={profile}
+        elementAccent={elementTheme.accent}
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+      />
 
       {/* Showcase Footer */}
       <footer className="profile-footer max-w-[1440px] mx-auto px-4 sm:px-8 py-6 border-t border-white/10 flex flex-wrap items-center justify-between text-[9px] text-[#788496] tracking-wider">
