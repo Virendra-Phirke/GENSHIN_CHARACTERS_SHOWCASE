@@ -243,6 +243,12 @@ export default function UnifiedShowcaseView({
   const [failedSplash, setFailedSplash] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
+  // Creative UI State
+  const velocityTilt = useScrollVelocity(); // Feature 5
+  const [shareModalOpen, setShareModalOpen] = useState(false); // Feature 20
+  const [isResonanceActive, setIsResonanceActive] = useState(false); // Feature 15
+  const [hoveredSetBonus, setHoveredSetBonus] = useState<string | null>(null); // Feature 10
+
   useEffect(() => {
     const controller = new AbortController();
 
