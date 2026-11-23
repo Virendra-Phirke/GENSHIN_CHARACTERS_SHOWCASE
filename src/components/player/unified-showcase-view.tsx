@@ -336,6 +336,71 @@ export default function UnifiedShowcaseView({
     return stat.rawValue ? stat.rawValue * 100 : parseFloat(stat.value);
   }, [activeCharacter?.stats]);
 
+  // Feature 15: Elemental Infusion & Team Resonance Mode calculations
+  const displayStats = useMemo(() => {
+    if (!activeCharacter) return [];
+    if (!isResonanceActive) return activeCharacter.stats;
+
+    const element = activeCharacter.element;
+    return activeCharacter.stats.map((s) => {
+      if (element === "Pyro" && s.label === "ATK") {
+        const current = s.rawValue ?? parseFloat(s.value.replace(/,/g, "")) ?? 2000;
+        const boosted = Math.round(current * 1.25);
+        return {
+          ...s,
+          value: boosted.toLocaleString(),
+          detail: "+25% Pyro Resonance Active",
+        };
+      }
+      if (element === "Cryo" && s.label === "CRIT Rate") {
+        const current = (s.rawValue ? s.rawValue * 100 : parseFloat(s.value)) ?? 50;
+        const boosted = (current + 15).toFixed(1);
+        return {
+          ...s,
+          value: `${boosted}%`,
+          detail: "+15% Cryo Resonance Active",
+        };
+      }
+      if (element === "Hydro" && s.label === "HP") {
+        const current = s.rawValue ?? parseFloat(s.value.replace(/,/g, "")) ?? 20000;
+        const boosted = Math.round(current * 1.25);
+        return {
+          ...s,
+          value: boosted.toLocaleString(),
+          detail: "+25% Hydro Resonance Active",
+        };
+      }
+      if (element === "Electro" && s.label === "Energy Recharge") {
+        const current = (s.rawValue ? s.rawValue * 100 : parseFloat(s.value)) ?? 120;
+        const boosted = (current + 20).toFixed(1);
+        return {
+          ...s,
+          value: `${boosted}%`,
+          detail: "+20% Electro Resonance Active",
+        };
+      }
+      if (element === "Geo" && s.label === "DEF") {
+        const current = s.rawValue ?? parseFloat(s.value.replace(/,/g, "")) ?? 900;
+        const boosted = Math.round(current * 1.25);
+        return {
+          ...s,
+          value: boosted.toLocaleString(),
+          detail: "+25% Geo Resonance Active",
+        };
+      }
+      if (element === "Dendro" && s.label === "Elemental Mastery") {
+        const current = s.rawValue ?? parseFloat(s.value.replace(/,/g, "")) ?? 80;
+        const boosted = Math.round(current + 80);
+        return {
+          ...s,
+          value: boosted.toLocaleString(),
+          detail: "+80 EM Dendro Resonance",
+        };
+      }
+      return s;
+    });
+  }, [activeCharacter, isResonanceActive]);
+
   const splashSrc =
     failedSplash === activeCharacter?.image
       ? activeCharacter?.imageFallback
