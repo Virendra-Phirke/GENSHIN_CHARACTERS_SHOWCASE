@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import React, { useRef, useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Maximize2, X } from "lucide-react";
 import type { ShowcaseCharacter } from "@/lib/types";
 
@@ -49,8 +50,13 @@ export default function ParallaxHeroArt({
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [burstParticles, setBurstParticles] = useState<BurstParticle[]>([]);
   const previousCharIdRef = useRef(character.id);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // ---------------------------------------------------------------------------
   // FEATURE 2: Elemental Burst Particle Disintegration on Character Switch
@@ -119,10 +125,9 @@ export default function ParallaxHeroArt({
     const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
     const y = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
 
-    // Multi-axis tilt calculation
     setTilt({
-      x: x * 14, // horizontal tilt deg
-      y: -y * 14, // vertical tilt deg
+      x: x * 14,
+      y: -y * 14,
     });
   };
 
@@ -140,6 +145,18 @@ export default function ParallaxHeroArt({
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
+  }, [modalOpen]);
+
+  // Lock body scroll when spotlight modal is open
+  useEffect(() => {
+    if (modalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [modalOpen]);
 
   return (
@@ -193,7 +210,7 @@ export default function ParallaxHeroArt({
               quality={95}
               className="object-contain transition-all duration-300"
               style={{
-                filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.6)) brightness(1.08) saturate(1.1)",
+                filter: `drop-shadow(0 0 32px ${elementGlow}) drop-shadow(0 24px 48px rgba(0,0,0,0.65)) brightness(1.08) saturate(1.1)`,
               }}
               onError={onImageError}
             />
@@ -216,7 +233,7 @@ export default function ParallaxHeroArt({
           />
         </div>
 
-        {/* Layer 3 (Foreground): Floating Elemental Particles & Stardust */}
+        {/* Layer 3 (Foreground): Floating Elemental Particles & Living Ambiance */}
         <div
           className="pointer-events-none absolute inset-0 overflow-hidden"
           style={{
@@ -240,6 +257,32 @@ export default function ParallaxHeroArt({
             className="absolute top-1/3 right-1/3 w-1 h-1 rounded-full animate-pulse opacity-75"
             style={{ backgroundColor: "#ffffff" }}
           />
+
+          {/* Feature 4: Elemental Living Atmosphere Overlay */}
+          {character.element === "Hydro" && (
+            <>
+              <span className="absolute bottom-16 left-1/3 w-3 h-3 rounded-full border border-sky-300/40 bg-sky-400/20 animate-bounce opacity-70" style={{ animationDuration: "4s" }} />
+              <span className="absolute bottom-28 right-1/3 w-2 h-2 rounded-full border border-blue-200/50 bg-blue-300/30 animate-bounce opacity-60" style={{ animationDuration: "3.2s", animationDelay: "1.2s" }} />
+            </>
+          )}
+          {character.element === "Pyro" && (
+            <>
+              <span className="absolute bottom-10 left-1/2 w-1.5 h-3 rounded-full bg-gradient-to-t from-orange-500 to-amber-200 animate-pulse opacity-80" style={{ animationDuration: "1.8s" }} />
+              <span className="absolute bottom-20 right-2/5 w-1 h-2 rounded-full bg-amber-300 animate-pulse opacity-70" style={{ animationDuration: "2.2s", animationDelay: "0.5s" }} />
+            </>
+          )}
+          {character.element === "Cryo" && (
+            <>
+              <span className="absolute top-24 left-1/3 text-[10px] text-cyan-200/60 animate-spin" style={{ animationDuration: "9s" }}>❄</span>
+              <span className="absolute bottom-24 right-1/3 text-xs text-white/50 animate-pulse" style={{ animationDuration: "3s" }}>✦</span>
+            </>
+          )}
+          {character.element === "Electro" && (
+            <>
+              <span className="absolute top-1/3 left-1/4 w-2 h-0.5 bg-purple-300/70 rotate-45 animate-ping opacity-75" style={{ animationDuration: "2s" }} />
+              <span className="absolute bottom-1/3 right-1/3 w-1.5 h-0.5 bg-violet-400/80 -rotate-12 animate-pulse opacity-85" style={{ animationDuration: "1.5s" }} />
+            </>
+          )}
         </div>
 
         {/* Feature 2: Active Disintegration Burst Particles */}
@@ -267,7 +310,7 @@ export default function ParallaxHeroArt({
             e.stopPropagation();
             setModalOpen(true);
           }}
-          className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0b0e16]/80 hover:bg-[#141924] border border-white/10 hover:border-white/25 text-[#c8a96e] hover:text-[#f3e1bf] text-xs font-medium backdrop-blur-md transition-all duration-200 opacity-80 group-hover:opacity-100 shadow-lg"
+          className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0b0e16]/80 hover:bg-[#141924] border border-white/10 hover:border-white/25 text-[#c8a96e] hover:text-[#f3e1bf] text-xs font-medium backdrop-blur-md transition-all duration-200 opacity-80 group-hover:opacity-100 shadow-lg cursor-pointer"
           title="Open Cinematic Fullscreen Spotlight"
         >
           <Maximize2 className="w-3.5 h-3.5" />
@@ -278,26 +321,27 @@ export default function ParallaxHeroArt({
       </div>
 
       {/* ---------------------------------------------------------------------------
-          FEATURE 3: Cinematic Viewport Fullscreen Spotlight Modal
+          FEATURE 3: Portaled Cinematic Viewport Fullscreen Spotlight Modal
+          Portaled to document.body so it is NEVER clipped or displaced by parent transforms
          --------------------------------------------------------------------------- */}
-      {modalOpen && (
+      {modalOpen && mounted && createPortal(
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-4 sm:p-8 animate-in fade-in duration-300 select-none"
+          className="fixed inset-0 z-[999999] flex flex-col items-center justify-between bg-black/95 backdrop-blur-3xl p-6 sm:p-10 select-none animate-in fade-in duration-300"
           onClick={() => setModalOpen(false)}
         >
           {/* Deep Ambient Aurora Glow */}
           <div
-            className="pointer-events-none absolute inset-0 opacity-30 blur-[140px]"
+            className="pointer-events-none absolute inset-0 opacity-40 blur-[140px]"
             style={{
-              background: `radial-gradient(circle at 50% 50%, ${elementGlow}, transparent 75%)`,
+              background: `radial-gradient(circle at 50% 50%, ${elementGlow}, transparent 70%)`,
             }}
           />
 
           {/* Modal Header Controls */}
           <div
-            className="absolute top-6 inset-x-6 sm:inset-x-12 flex items-center justify-between z-50 pointer-events-auto"
+            className="w-full max-w-6xl flex items-center justify-between z-50 pointer-events-auto shrink-0"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3">
@@ -324,7 +368,7 @@ export default function ParallaxHeroArt({
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="p-2.5 rounded-full bg-white/5 hover:bg-white/15 border border-white/15 text-white/80 hover:text-white transition-colors"
+              className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white/90 hover:text-white transition-colors cursor-pointer shadow-lg"
               title="Close Spotlight (ESC)"
             >
               <X className="w-5 h-5" />
@@ -333,7 +377,7 @@ export default function ParallaxHeroArt({
 
           {/* Main Fullscreen High-Resolution Artwork Stage */}
           <div
-            className="relative w-full h-[75vh] sm:h-[82vh] max-w-5xl z-10 flex items-center justify-center pointer-events-auto"
+            className="relative w-full h-[68vh] sm:h-[75vh] max-w-5xl z-10 flex items-center justify-center pointer-events-auto my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {splashSrc && (
@@ -345,24 +389,28 @@ export default function ParallaxHeroArt({
                 unoptimized
                 sizes="100vw"
                 quality={95}
-                className="object-contain drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)] animate-in zoom-in-95 duration-500"
+                className="object-contain drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)]"
+                onError={onImageError}
               />
             )}
           </div>
 
           {/* Lore Quote & Close Helper at Bottom */}
           <div
-            className="absolute bottom-6 inset-x-6 flex flex-col items-center justify-center text-center z-50 pointer-events-none"
+            className="w-full max-w-xl flex flex-col items-center justify-center text-center z-50 pointer-events-none shrink-0"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="max-w-xl text-xs sm:text-sm text-[#b8c3d4] italic font-serif leading-relaxed px-4 py-2 rounded-xl bg-black/40 backdrop-blur-md border border-white/5">
-              &ldquo;{loreQuote}&rdquo;
-            </p>
-            <span className="text-[9px] font-mono text-[#6c7686] mt-2 tracking-widest uppercase">
+            {loreQuote && (
+              <p className="text-xs sm:text-sm text-[#b8c3d4] italic font-serif leading-relaxed px-4 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
+                &ldquo;{loreQuote}&rdquo;
+              </p>
+            )}
+            <span className="text-[9px] font-mono text-[#8692a3] mt-2 tracking-widest uppercase">
               CLICK ANYWHERE OR PRESS ESC TO RETURN
             </span>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

@@ -248,6 +248,7 @@ export default function UnifiedShowcaseView({
   const [shareModalOpen, setShareModalOpen] = useState(false); // Feature 20
   const [isResonanceActive, setIsResonanceActive] = useState(false); // Feature 15
   const [hoveredSetBonus, setHoveredSetBonus] = useState<string | null>(null); // Feature 10
+  const [isDollyActive, setIsDollyActive] = useState(false); // Feature 3: Camera Dolly Zoom
 
   useEffect(() => {
     const controller = new AbortController();
@@ -323,6 +324,28 @@ export default function UnifiedShowcaseView({
       .reduce((sum, art) => sum + (art.critValue ?? 0), 0)
       .toFixed(1);
   }, [activeCharacter]);
+
+  // Aggregate substat roll distribution summary (matching Akasha / Enka footer in reference image)
+  const buildRollSummary = useMemo(() => {
+    if (!activeCharacter?.artifacts) return [];
+    const map: Record<string, { label: string; value: number; isPercent: boolean; pips: number }> = {};
+    for (const art of activeCharacter.artifacts) {
+      for (const sub of art.substats) {
+        const isPercent = sub.value.includes("%");
+        const num = parseFloat(sub.value.replace(/[%+,]/g, "")) || 0;
+        const key = sub.label;
+        if (!map[key]) {
+          map[key] = { label: key, value: 0, isPercent, pips: 0 };
+        }
+        map[key].value += num;
+        if (key.includes("CRIT Rate")) map[key].pips += Math.round(num / 3.3);
+        else if (key.includes("CRIT DMG")) map[key].pips += Math.round(num / 6.6);
+        else if (key.includes("ATK%") || key.includes("HP%") || key.includes("Energy")) map[key].pips += Math.round(num / 4.96);
+        else map[key].pips += 1;
+      }
+    }
+    return Object.values(map);
+  }, [activeCharacter?.artifacts]);
 
   const critRateNumber = useMemo(() => {
     const stat = activeCharacter?.stats.find((s) => s.label === "CRIT Rate");
@@ -516,6 +539,12 @@ export default function UnifiedShowcaseView({
             onSelectCharacter={(char) => {
               setActiveCharacter(char);
               setFailedSplash(null);
+              setIsDollyActive(true);
+              setTimeout(() => setIsDollyActive(false), 850);
+              const el = document.getElementById("section-dossier");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
             }}
           />
         </section>
@@ -523,7 +552,15 @@ export default function UnifiedShowcaseView({
         {/* =========================================================================
             SECTION 2: FEATURED CHARACTER DOSSIER (Pure Borderless Splash Art + Bento)
            ========================================================================= */}
-        <div key={activeCharacter.id} id="section-dossier" className="dossier-animate-entry mt-6">
+        <div
+          key={activeCharacter.id}
+          id="section-dossier"
+          className={`dossier-animate-entry mt-6 transition-all duration-700 ${
+            isDollyActive
+              ? "scale-[1.025] translate-y-1 brightness-110"
+              : "scale-100 translate-y-0 brightness-100"
+          }`}
+        >
           {/* Hero Banner: Borderless Centered Splash Art + Metadata */}
           <section className="character-build-hero">
             {/* Feature 1, 2, 3: Mouse-Driven 3D Parallax, Disintegration Burst, Fullscreen Spotlight */}
@@ -833,7 +870,7 @@ export default function UnifiedShowcaseView({
                     )}
                   </div>
 
-                  {/* Feature 10: Interactive Artifact Set Resonance Glow on Hover */}
+                  {/* Feature 7 & 10: Interactive Artifact Set Resonance Glow on Hover */}
                   <div className="set-bonus-tags">
                     {activeSetBonuses.map((bonus) => {
                       const isHovered = hoveredSetBonus === bonus.setName;
@@ -855,10 +892,24 @@ export default function UnifiedShowcaseView({
                   </div>
                 </div>
 
+                {/* Feature 7: Artifact Set Resonance Flow Conduit Banner */}
+                {activeSetBonuses.length > 0 && (
+                  <div className="mb-3 px-3 py-1.5 rounded-lg bg-[#c8a96e]/10 border border-[#c8a96e]/30 flex items-center justify-between text-[10px] text-[#f2e2be]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#c8a96e] animate-ping" />
+                      <span className="font-mono font-bold uppercase tracking-wider">
+                        Set Resonance Conduit: {activeSetBonuses.map((b) => `${b.count}pc ${b.setName}`).join(" · ")}
+                      </span>
+                    </div>
+                    <span className="text-[9px] text-[#c8a96e] font-mono">⚡ CIRCUIT ACTIVE</span>
+                  </div>
+                )}
+
                 <div className="artifact-build-list">
                   {activeCharacter.artifacts.map((artifact, index) => {
                     const isSetResonant = Boolean(
-                      hoveredSetBonus && artifact.setName === hoveredSetBonus
+                      (hoveredSetBonus && artifact.setName === hoveredSetBonus) ||
+                      activeSetBonuses.some((b) => b.setName === artifact.setName && b.count >= 2)
                     );
 
                     return (
@@ -936,6 +987,26 @@ export default function UnifiedShowcaseView({
                     <p className="build-empty">No equipped artifacts found.</p>
                   )}
                 </div>
+
+                {/* Akasha / Enka-Style Total Substat Roll Value Distribution Bar (matching reference Image 3) */}
+                {buildRollSummary.length > 0 && (
+                  <div className="mt-3 px-3 py-2 rounded-xl bg-black/40 border border-white/10 flex flex-wrap items-center justify-around gap-2 text-[10px] font-mono text-[#a2aec1]">
+                    {buildRollSummary.map((stat, sIdx) => {
+                      const isCrit = stat.label.includes("CRIT");
+                      return (
+                        <div key={sIdx} className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/[0.03]">
+                          <span className="text-[9px] text-[#6c7686]">{stat.pips}✦</span>
+                          <span className={isCrit ? "text-[#f5d070] font-semibold" : "text-[#edf0f5]"}>
+                            {stat.label.replace("Elemental ", "E.")}:
+                          </span>
+                          <strong className={isCrit ? "text-[#f2e2be]" : "text-white"}>
+                            +{stat.value.toFixed(1)}{stat.isPercent ? "%" : ""}
+                          </strong>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
 
               {/* 4. Talents & Constellations Section */}
