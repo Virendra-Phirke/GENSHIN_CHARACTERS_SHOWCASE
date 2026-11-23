@@ -1,0 +1,4 @@
+{
+  "_comment": "Populate only with verified Enka avatar IDs and Genshin.dev slugs after validating both APIs. Unknown IDs intentionally fall back instead of guessing.",
+  "characters": {}
+}
