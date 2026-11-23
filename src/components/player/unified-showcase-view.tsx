@@ -458,6 +458,9 @@ export default function UnifiedShowcaseView({
       {/* Dynamic Celestial Stardust Canvas */}
       <CelestialBackground elementAccent={elementTheme.accent} element={activeCharacter.element} />
 
+      {/* Feature 8: Section Scroll Progress Constellation Line */}
+      <SectionConstellationNav elementColor={elementTheme.accent} elementGlow={elementTheme.glow} />
+
       {/* Top Ambient Elemental Aurora */}
       <div
         className="pointer-events-none fixed inset-x-0 top-0 h-[480px] opacity-25 blur-[120px] transition-colors duration-1000"
@@ -477,9 +480,8 @@ export default function UnifiedShowcaseView({
           </span>
         </Link>
 
-        {/* Traveler Summary Chips */}
-        <div className="flex items-center gap-3 sm:gap-5 text-xs">
-
+        {/* Traveler Summary Chips & Share Action */}
+        <div className="flex items-center gap-3 sm:gap-4 text-xs">
           <span className="hidden md:inline text-[#8894a4] tracking-wider text-[10px]">
             TRAVELER: <strong className="text-[#f1f3f7]">{profile.nickname || "Traveler"}</strong>
           </span>
@@ -491,6 +493,17 @@ export default function UnifiedShowcaseView({
           <span className="px-2.5 py-0.5 rounded-full border border-[#c8a96e]/30 bg-[#c8a96e]/10 text-[#f2e2be] text-[10px] font-bold">
             AR {profile.adventureRank ?? 60} · WL {profile.worldLevel ?? 9}
           </span>
+
+          {/* Feature 20: One-Click Share Build Card Snapshot Button */}
+          <button
+            type="button"
+            onClick={() => setShareModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-xs font-semibold text-[#f1f3f7] hover:border-[#c8a96e] transition-all duration-200 shadow-sm"
+            title="Export aesthetic build card snapshot"
+          >
+            <Camera className="w-3.5 h-3.5 text-[#c8a96e]" />
+            <span className="hidden sm:inline text-[11px]">Share Card</span>
+          </button>
         </div>
       </header>
 
@@ -499,7 +512,7 @@ export default function UnifiedShowcaseView({
         {/* =========================================================================
             SECTION 1: 3D ROTATING CHARACTER CAROUSEL (Centerpiece Animation)
            ========================================================================= */}
-        <section aria-label="Showcase Roster Selection">
+        <section id="section-roster" aria-label="Showcase Roster Selection">
           <RotatingCharacterCarousel
             characters={profile.characters}
             activeCharacterId={activeCharacter.id}
@@ -513,34 +526,18 @@ export default function UnifiedShowcaseView({
         {/* =========================================================================
             SECTION 2: FEATURED CHARACTER DOSSIER (Pure Borderless Splash Art + Bento)
            ========================================================================= */}
-        <div key={activeCharacter.id} className="dossier-animate-entry mt-6">
+        <div key={activeCharacter.id} id="section-dossier" className="dossier-animate-entry mt-6">
           {/* Hero Banner: Borderless Centered Splash Art + Metadata */}
           <section className="character-build-hero">
-            {/* Left: Pure Borderless High-Impact Character Artwork with Parallax Hover */}
-            <div className="character-hero-art-stage">
-              <div
-                className="character-hero-ambient-glow"
-                style={{ background: elementTheme.glow }}
-                aria-hidden="true"
-              />
-              <div className="character-hero-art-frame">
-                {splashSrc ? (
-                  <Image
-                    src={splashSrc}
-                    alt={activeCharacter.name}
-                    fill
-                    priority
-                    unoptimized
-                    sizes="(max-width: 900px) 100vw, 55vw"
-                    quality={90}
-                    className="character-hero-splash-image"
-                    onError={() => setFailedSplash(splashSrc)}
-                  />
-                ) : (
-                  <span className="character-tile-placeholder" aria-hidden="true">✦</span>
-                )}
-              </div>
-            </div>
+            {/* Feature 1, 2, 3: Mouse-Driven 3D Parallax, Disintegration Burst, Fullscreen Spotlight */}
+            <ParallaxHeroArt
+              character={activeCharacter}
+              splashSrc={splashSrc || ""}
+              elementAccent={elementTheme.accent}
+              elementGlow={elementTheme.glow}
+              loreQuote={currentLoreQuote}
+              onImageError={() => setFailedSplash(splashSrc)}
+            />
 
             {/* Right: Identity, Constellations, Lore, and Quick Summary Bento */}
             <div className="character-build-intro">
