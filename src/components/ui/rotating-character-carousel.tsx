@@ -6,7 +6,7 @@
  */
 
 import Image from "next/image";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Pause, Play } from "lucide-react";
 import type { ShowcaseCharacter } from "@/lib/types";
 
@@ -34,11 +34,44 @@ export default function RotatingCharacterCarousel({
   const [isPaused, setIsPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  const deckRef = useRef<HTMLDivElement>(null);
+  const angleRef = useRef(0);
+  const isPausedRef = useRef(false);
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
+
+  // Mobile detection
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Continuous smooth right-to-left 3D rotation loop
+  useEffect(() => {
+    let animId: number;
+    let lastTime = performance.now();
+    // 360 degrees in 54 seconds = calm, smooth, cinematic speed
+    const speed = 360 / 60000;
+
+    const tick = (now: number) => {
+      const delta = Math.min(now - lastTime, 80);
+      lastTime = now;
+
+      if (!isPausedRef.current && deckRef.current) {
+        // Rotating from right to left: angle decreases
+        angleRef.current = (angleRef.current - delta * speed) % 360;
+        deckRef.current.style.transform = `rotateY(${angleRef.current}deg)`;
+      }
+
+      animId = requestAnimationFrame(tick);
+    };
+
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
   }, []);
 
   const activeChar =
@@ -50,8 +83,12 @@ export default function RotatingCharacterCarousel({
   };
 
   const total = characters.length;
-  const radius = isMobile ? 220 : 320;
-  const durationSeconds = 24;
+  // Calculate radius dynamically to ensure an elegant ~55px gap between all cards
+  const cardWidth = isMobile ? 150 : 190;
+  const desiredGap = isMobile ? 28 : 55;
+  const angleStepRad = Math.PI / Math.max(total, 6);
+  const radius = Math.round((cardWidth + desiredGap) / (2 * Math.sin(angleStepRad)));
+  const durationSeconds = 54;
 
   return (
     <div className="rotating-carousel-container relative w-full overflow-hidden py-8 select-none">
@@ -77,11 +114,10 @@ export default function RotatingCharacterCarousel({
           <button
             type="button"
             onClick={() => setIsPaused((prev) => !prev)}
-            className={`carousel-ctrl-btn p-2 rounded-full border transition-colors ${
-              !isPaused
+            className={`carousel-ctrl-btn p-2 rounded-full border transition-colors ${!isPaused
                 ? "border-[#c8a96e] bg-[#c8a96e]/15 text-[#f3dfbd]"
                 : "border-white/10 bg-white/5 text-[#9ba6b6] hover:border-white/20 hover:text-white"
-            }`}
+              }`}
             title={!isPaused ? "Pause 3D rotation" : "Resume 3D rotation"}
             aria-label={!isPaused ? "Pause 3D rotation" : "Resume 3D rotation"}
           >
@@ -90,15 +126,19 @@ export default function RotatingCharacterCarousel({
         </div>
       </div>
 
-      {/* 3D Rotating Stage - Adapted from Uiverse.io Strange Eel 100 */}
-      <div className="card-3d-stage">
+      {/* 3D Rotating Stage - Centered with perspective */}
+      <div className="carousel-3d-stage">
         {/* Ambient Element Backdrop Glow */}
         <div
           className="carousel-ambient-stage absolute inset-x-0 top-1/2 -translate-y-1/2 h-[320px] w-full max-w-4xl mx-auto rounded-full blur-[90px] pointer-events-none transition-all duration-700 opacity-40"
           style={{ background: activeElement.glow }}
         />
 
-        <div className={`card-3d ${isPaused ? "is-paused" : ""}`}>
+        <div
+          ref={deckRef}
+          className={`card-3d ${isPaused ? "is-paused" : ""}`}
+          style={{ transform: "rotateY(0deg)" }}
+        >
           {characters.map((char, index) => {
             const angle = (index * 360) / total;
             const delay = -((index * durationSeconds) / total);
@@ -158,11 +198,10 @@ export default function RotatingCharacterCarousel({
               key={c.id}
               type="button"
               onClick={() => onSelectCharacter(c)}
-              className={`thumb-nav-btn relative flex items-center gap-2 px-3 py-1.5 rounded border transition-all duration-200 text-xs ${
-                isActive
+              className={`thumb-nav-btn relative flex items-center gap-2 px-3 py-1.5 rounded border transition-all duration-200 text-xs ${isActive
                   ? "bg-[#c8a96e]/20 border-[#c8a96e] text-[#f2e2be] shadow-[0_0_12px_rgba(200,169,110,0.25)] font-semibold"
                   : "bg-white/5 border-white/10 text-[#8c97a7] hover:border-white/25 hover:text-white"
-              }`}
+                }`}
             >
               <span
                 className="w-1.5 h-1.5 rounded-full"

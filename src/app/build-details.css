@@ -1517,21 +1517,12 @@
  * MIT License, Copyright (c) musashi-13 (Karan Hathwar)
  */
 
-@keyframes autoRun3d {
-  from {
-    transform: perspective(900px) rotateY(-360deg);
-  }
-  to {
-    transform: perspective(900px) rotateY(0deg);
-  }
-}
-
 @keyframes animateBrightness {
   10% {
     filter: brightness(1);
   }
   50% {
-    filter: brightness(0.22);
+    filter: brightness(0.25);
   }
   90% {
     filter: brightness(1);
@@ -1539,23 +1530,26 @@
 }
 
 .carousel-3d-stage {
-  perspective: 900px;
+  perspective: 1100px;
+  perspective-origin: 50% 50%;
   transform-style: preserve-3d;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 380px;
+  min-height: 440px;
+  width: 100%;
   position: relative;
+  overflow: visible;
 }
 
 .card-3d {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-  height: 320px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
   transform-style: preserve-3d;
-  transform: perspective(900px);
-  animation: autoRun3d 24s linear infinite;
+  transform-origin: center center;
   will-change: transform;
 }
 
@@ -1564,10 +1558,10 @@
   width: 160px;
   height: 240px;
   border-radius: 0.75rem;
-  top: 50%;
-  left: 50%;
+  top: 0;
+  left: 0;
   transform-origin: center center;
-  animation: animateBrightness 24s linear infinite;
+  animation: animateBrightness 54s linear infinite;
   transition: border-color 200ms ease, box-shadow 200ms ease;
   will-change: transform, filter;
   cursor: pointer;
@@ -1578,21 +1572,15 @@
 }
 
 @media (min-width: 640px) {
-  .card-3d {
-    height: 380px;
+  .carousel-3d-stage {
+    min-height: 480px;
   }
   .card-3d-card {
-    width: 195px;
-    height: 290px;
+    width: 190px;
+    height: 285px;
   }
 }
 
-.card-3d:hover,
-.card-3d.is-paused {
-  animation-play-state: paused !important;
-}
-
-.card-3d:hover .card-3d-card,
 .card-3d.is-paused .card-3d-card {
   animation-play-state: paused !important;
 }
@@ -1603,7 +1591,7 @@
 }
 
 .card-3d-card:hover {
-  filter: brightness(1.15) !important;
+  filter: brightness(1.2) !important;
   border-color: rgba(200, 169, 110, 0.9) !important;
 }
 
