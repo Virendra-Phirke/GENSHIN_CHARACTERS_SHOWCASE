@@ -7,12 +7,30 @@ export type BuildStat = {
 
 export type ShowcaseArtifact = {
   slot: string;
+  slotKey?: "flower" | "plume" | "sands" | "goblet" | "circlet";
   name?: string;
   setName?: string;
   rarity?: number;
   level?: number;
   mainStat?: BuildStat;
   substats: BuildStat[];
+  critValue?: number;
+  icon?: string;
+  iconFallback?: string;
+};
+
+export type TalentInfo = {
+  name: string;
+  level: number;
+  isCrowned?: boolean;
+  icon?: string;
+  iconFallback?: string;
+};
+
+export type ConstellationInfo = {
+  index: number;
+  unlocked: boolean;
+  name?: string;
   icon?: string;
   iconFallback?: string;
 };
@@ -25,6 +43,7 @@ export type ShowcaseCharacter = {
   friendship?: number;
   constellation?: number;
   rarity?: number;
+  critValue?: number;
   image?: string;
   imageFallback?: string;
   weapon?: {
@@ -39,7 +58,8 @@ export type ShowcaseCharacter = {
   };
   artifacts: ShowcaseArtifact[];
   stats: BuildStat[];
-  talents: Array<{ name: string; level: number }>;
+  talents: TalentInfo[];
+  constellations: ConstellationInfo[];
 };
 
 export type PlayerShowcase = {

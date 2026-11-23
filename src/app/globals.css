@@ -134,8 +134,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .back-link { color: #a6acb8; font-size: 11px; display: inline-flex; align-items: center; gap: 9px; transition: color .2s ease; }
 .back-link:hover { color: var(--gold-soft); }
 .profile-heading { padding: 82px 0 55px; border-bottom: 1px solid var(--line); }
-.profile-heading h1 { margin: 20px 0 8px; font-size: clamp(42px, 6vw, 72px); font-weight: 450; letter-spacing: -.06em; }
-.profile-signature { margin: 0; color: #929baa; font-family: Georgia, serif; font-style: italic; font-size: 17px; }
+.profile-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-top: 16px; }
+.profile-title-row h1 { margin: 0; font-size: clamp(42px, 6vw, 72px); font-weight: 450; letter-spacing: -.06em; }
+.profile-badge-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid rgba(200,169,110,.35); background: rgba(200,169,110,.08); color: var(--gold-soft); font-size: 9px; font-weight: 600; letter-spacing: .12em; border-radius: 999px; }
+.profile-signature { margin: 12px 0 0; color: #929baa; font-family: Georgia, serif; font-style: italic; font-size: 17px; }
 .profile-meta { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 30px; }
 .profile-meta span { color: #7e8795; font-size: 8px; letter-spacing: .15em; display: flex; gap: 9px; align-items: center; }
 .profile-meta strong { color: #d9dce2; font-size: 11px; letter-spacing: .03em; font-weight: 550; }

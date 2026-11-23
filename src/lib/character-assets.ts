@@ -3,10 +3,25 @@ type EnkaAvatarRecord = {
   QualityType?: string;
   NameTextMapHash?: number;
   SideIconName?: string;
+  SkillOrder?: number[];
+  Skills?: Record<string, string>;
+  Consts?: string[];
 };
 
 type EnkaAvatarStore = Record<string, EnkaAvatarRecord>;
 type EnkaLocaleStore = { en?: Record<string, string> };
+
+export type SkillAsset = {
+  id: number;
+  icon: string;
+  fallbackIcon: string;
+};
+
+export type ConstellationAsset = {
+  index: number;
+  icon: string;
+  fallbackIcon: string;
+};
 
 export type CharacterAssetMetadata = {
   name: string;
@@ -14,10 +29,13 @@ export type CharacterAssetMetadata = {
   rarity?: number;
   splashUrl: string;
   fallbackUrl: string;
+  skills?: SkillAsset[];
+  constellations?: ConstellationAsset[];
 };
 
 const AVATARS_URL = "https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/gi/avatars.json";
 const LOCALES_URL = "https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/gi/locs.json";
+
 const ELEMENT_NAMES: Record<string, string> = {
   Fire: "Pyro",
   Water: "Hydro",
@@ -27,6 +45,16 @@ const ELEMENT_NAMES: Record<string, string> = {
   Rock: "Geo",
   Grass: "Dendro",
 };
+
+function formatAssetUrl(rawPath: string | undefined): { webp: string; png: string } | undefined {
+  if (!rawPath) return undefined;
+  const filename = rawPath.split("/").pop()?.replace(/\.png$/i, "");
+  if (!filename) return undefined;
+  return {
+    webp: `https://static.nanoka.cc/assets/gi/${filename}.webp`,
+    png: `https://enka.network/ui/${filename}.png`,
+  };
+}
 
 let metadataPromise: Promise<Map<number, CharacterAssetMetadata>> | null = null;
 let metadataExpiresAt = 0;
@@ -69,14 +97,39 @@ async function loadCharacterMetadata(): Promise<Map<number, CharacterAssetMetada
         .replace(/^UI_AvatarIcon_Side_/, "")
         .replace(/\.png$/i, "");
 
+      const skills: SkillAsset[] = (avatar.SkillOrder ?? [])
+        .map((skillId) => {
+          const rawIcon = avatar.Skills?.[String(skillId)];
+          const urls = formatAssetUrl(rawIcon);
+          if (!urls) return null;
+          return {
+            id: skillId,
+            icon: urls.webp,
+            fallbackIcon: urls.png,
+          };
+        })
+        .filter((skill): skill is SkillAsset => skill !== null);
+
+      const constellations: ConstellationAsset[] = (avatar.Consts ?? [])
+        .map((constIcon, index) => {
+          const urls = formatAssetUrl(constIcon);
+          if (!urls) return null;
+          return {
+            index: index + 1,
+            icon: urls.webp,
+            fallbackIcon: urls.png,
+          };
+        })
+        .filter((item): item is ConstellationAsset => item !== null);
+
       result.set(id, {
         name,
         element: avatar.Element ? ELEMENT_NAMES[avatar.Element] : undefined,
         rarity: avatar.QualityType === "QUALITY_ORANGE" ? 5 : avatar.QualityType === "QUALITY_PURPLE" ? 4 : undefined,
-        // Hakush.in's static UI mirror serves the same game asset names as WebP.
-        // Prefer it over the Genshin.dev API path to avoid an extra API hop.
         splashUrl: `https://static.nanoka.cc/assets/gi/UI_Gacha_AvatarImg_${internalName}.webp`,
         fallbackUrl: `https://enka.network/ui/UI_Gacha_AvatarImg_${internalName}.png`,
+        skills,
+        constellations,
       });
     }
 
@@ -98,8 +151,8 @@ export async function getCharacterAssetMetadata(
   avatarId: number,
 ): Promise<CharacterAssetMetadata | undefined> {
   try {
-    const metadata = await loadCharacterMetadata();
-    return metadata.get(avatarId);
+    const map = await loadCharacterMetadata();
+    return map.get(avatarId);
   } catch {
     return undefined;
   }
