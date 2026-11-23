@@ -15,7 +15,7 @@ interface RotatingCharacterCarouselProps {
   onSelectCharacter: (character: ShowcaseCharacter) => void;
 }
 
-const STORAGE_KEY = "genshin_carousel_custom_config_v5";
+const STORAGE_KEY = "genshin_carousel_custom_config_v6";
 
 const ELEMENT_COLORS: Record<string, { accent: string; bg: string; glow: string }> = {
   Cryo: { accent: "#9ed8e9", bg: "rgba(158,216,233,.12)", glow: "rgba(158,216,233,.38)" },
@@ -43,9 +43,12 @@ export default function RotatingCharacterCarousel({
       localStorage.removeItem("genshin_carousel_custom_config_v2");
       localStorage.removeItem("genshin_carousel_custom_config_v3");
       localStorage.removeItem("genshin_carousel_custom_config_v4");
+      localStorage.removeItem("genshin_carousel_custom_config_v5");
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        if (parsed.autoplay === "none") parsed.autoplay = "drift";
+        if (!parsed.speed || parsed.speed < 2) parsed.speed = 7;
         requestAnimationFrame(() => {
           setConfig((prev) => ({ ...prev, ...parsed }));
         });

@@ -49,7 +49,7 @@ export const DEFAULT_CAROUSEL_CONFIG: CarouselCustomConfig = {
   parallax: 0.3,
   stretch: 0,
   snap: true,
-  pauseOnHover: true,
+  pauseOnHover: false,
   focusOnClick: true,
   draggable: true,
   fadeColor: "#000000",

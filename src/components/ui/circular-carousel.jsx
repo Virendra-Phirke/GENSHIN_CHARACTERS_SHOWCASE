@@ -414,14 +414,12 @@ const CircularCarousel = ({
       const state = stateRef.current;
       state.hover = false;
       state.holdUntil = 0;
+      state.target = null;
       if (settingsRef.current.direction !== 'bounce') {
         state.dir = directionSignRef.current;
       }
-      if (state.target !== null && Math.abs(state.target - state.angle) < 1.5) {
-        state.target = null;
-      }
       wakeRef.current();
-    }, 2200);
+    }, 1200);
   }, []);
 
   const resetInteractionTimerRef = useRef(resetInteractionTimer);
@@ -584,7 +582,7 @@ const CircularCarousel = ({
         if (cruise === 0 && s.snap && Math.abs(state.velocity) < SETTLE_SPEED) {
           state.target = nearest(state.angle);
         }
-        busy = busy || cruise !== 0 || Math.abs(state.velocity) > 0.01 || state.target !== null;
+        busy = busy || cruise !== 0 || Math.abs(state.velocity) > 0.01 || state.target !== null || s.autoplay === 'drift';
       }
 
       if (s.autoplay === 'step' && !paused && !state.intro && state.introDone) {
@@ -752,7 +750,7 @@ const CircularCarousel = ({
 
   useEffect(() => {
     wakeRef.current();
-  });
+  }, [autoplay, speed]);
 
   const focusIndex = useCallback(index => {
     const state = stateRef.current;
@@ -760,9 +758,14 @@ const CircularCarousel = ({
     let target = -index * s.step;
     target += 360 * Math.round((state.angle - target) / 360);
     state.target = target;
-    state.holdUntil = performance.now() + 2800;
+    state.holdUntil = performance.now() + 1400;
     resetInteractionTimer();
     wakeRef.current();
+    setTimeout(() => {
+      state.holdUntil = 0;
+      state.target = null;
+      wakeRef.current();
+    }, 1500);
   }, [resetInteractionTimer]);
 
   const stepBy = useCallback(delta => {
@@ -770,9 +773,14 @@ const CircularCarousel = ({
     const s = settingsRef.current;
     const base = state.target ?? Math.round(state.angle / s.step) * s.step;
     state.target = base - delta * s.step * (s.layout.inward ? -1 : 1);
-    state.holdUntil = performance.now() + 2800;
+    state.holdUntil = performance.now() + 1400;
     resetInteractionTimer();
     wakeRef.current();
+    setTimeout(() => {
+      state.holdUntil = 0;
+      state.target = null;
+      wakeRef.current();
+    }, 1500);
   }, [resetInteractionTimer]);
 
   const updatePointer = event => {
