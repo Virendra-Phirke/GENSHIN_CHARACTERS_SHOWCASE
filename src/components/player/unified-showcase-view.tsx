@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   Sparkles,
   Swords,
+  Volume2,
+  VolumeX,
   Zap,
 } from "lucide-react";
 import type { PlayerApiError, PlayerShowcase, ShowcaseCharacter } from "@/lib/types";
@@ -19,6 +21,10 @@ import GenshinLoader from "@/components/ui/genshin-loader";
 import RotatingCharacterCarousel from "@/components/ui/rotating-character-carousel";
 import TiltCard from "@/components/ui/tilt-card";
 import CritRatioGauge from "@/components/ui/crit-ratio-gauge";
+import StatRadarChart from "@/components/ui/stat-radar-chart";
+import ConstellationStarMap from "@/components/ui/constellation-star-map";
+import ArtifactRollInspector from "@/components/ui/artifact-roll-inspector";
+import { playCelestialChime, toggleAudioMute, getIsAudioMuted } from "@/lib/audio-chime";
 
 interface UnifiedShowcaseViewProps {
   initialCharacterId?: number;
@@ -35,6 +41,21 @@ const ELEMENT_DATA: Record<
   Anemo: { accent: "#82d0b4", wash: "rgba(130,208,180,.12)", glow: "rgba(130,208,180,.38)", name: "Anemo" },
   Geo: { accent: "#e5bc75", wash: "rgba(229,188,117,.12)", glow: "rgba(229,188,117,.38)", name: "Geo" },
   Dendro: { accent: "#a8c878", wash: "rgba(168,200,120,.12)", glow: "rgba(168,200,120,.38)", name: "Dendro" },
+};
+
+const CHARACTER_LORE_QUOTES: Record<number, string> = {
+  10000114: "In the dark depths of the abyss, time is merely a ripple in the stillness.",
+  10000052: "The world remains constant over the millennia, as does the eternal lightning.",
+  10000089: "The stage is set, and the spotlight shines upon the grand theater of destiny.",
+  10000087: "We shall be the impartial judges of tides and the arbiters of ancient memory.",
+  10000106: "A flame that never dies burns brightest in the heart of courage and passion.",
+  10000125: "Hark, the choir of the slumbering stars softly hums across the cosmos.",
+  10000073: "Even the smallest seed holds the wisdom to become an ancient sanctuary tree.",
+  10000091: "Behind every mystery lies an answer waiting for those who dare to seek it.",
+  10000122: "Through sacred dunes and starlit sands, the golden legacy endures.",
+  10000133: "Clockwork precision outlives the fleeting whims and passions of mortals.",
+  10000150: "Grace in every step, absolute precision and resolve in every strike.",
+  10000143: "The first thaw of spring begins with a single whisper of warmth.",
 };
 
 function EquipmentArtwork({
@@ -109,7 +130,7 @@ function TalentOrConstIcon({
 }
 
 export default function UnifiedShowcaseView({
-  initialCharacterId = 10000114, // Default to Skirk
+  initialCharacterId = 10000114,
 }: UnifiedShowcaseViewProps) {
   const [profile, setProfile] = useState<PlayerShowcase | null>(null);
   const [activeCharacter, setActiveCharacter] = useState<ShowcaseCharacter | null>(null);
@@ -117,6 +138,7 @@ export default function UnifiedShowcaseView({
   const [loading, setLoading] = useState(true);
   const [failedSplash, setFailedSplash] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [isMuted, setIsMuted] = useState(() => getIsAudioMuted());
 
   useEffect(() => {
     const controller = new AbortController();
@@ -136,7 +158,7 @@ export default function UnifiedShowcaseView({
         const showcase = data as PlayerShowcase;
         setProfile(showcase);
 
-        // Find initial character or fallback to Skirk or first character
+        // Find initial character or fallback to Skirk
         const defaultChar =
           showcase.characters.find((c) => c.id === initialCharacterId) ||
           showcase.characters.find((c) => c.id === 10000114) ||
@@ -210,6 +232,11 @@ export default function UnifiedShowcaseView({
       ? activeCharacter?.imageFallback
       : activeCharacter?.image || activeCharacter?.imageFallback;
 
+  const currentLoreQuote =
+    activeCharacter && CHARACTER_LORE_QUOTES[activeCharacter.id]
+      ? CHARACTER_LORE_QUOTES[activeCharacter.id]
+      : "A journey written across the stars of Teyvat.";
+
   if (loading) {
     return (
       <main className="min-h-screen bg-[#0b0f16] flex items-center justify-center p-4">
@@ -255,11 +282,11 @@ export default function UnifiedShowcaseView({
       }}
     >
       {/* Dynamic Celestial Stardust Canvas */}
-      <CelestialBackground elementAccent={elementTheme.accent} />
+      <CelestialBackground elementAccent={elementTheme.accent} element={activeCharacter.element} />
 
       {/* Top Ambient Elemental Aurora */}
       <div
-        className="pointer-events-none fixed inset-x-0 top-0 h-[450px] opacity-25 blur-[120px] transition-colors duration-1000"
+        className="pointer-events-none fixed inset-x-0 top-0 h-[480px] opacity-25 blur-[120px] transition-colors duration-1000"
         style={{
           background: `radial-gradient(circle at 50% 0%, ${elementTheme.accent}, transparent 75%)`,
         }}
@@ -276,16 +303,33 @@ export default function UnifiedShowcaseView({
           </span>
         </Link>
 
-        {/* Traveler Summary Chips */}
-        <div className="hidden sm:flex items-center gap-4 text-xs">
-          <span className="text-[#8894a4] tracking-wider text-[10px]">
+        {/* Traveler Summary Chips & Audio Toggle */}
+        <div className="flex items-center gap-3 sm:gap-5 text-xs">
+          <button
+            type="button"
+            onClick={() => {
+              const nextMuted = toggleAudioMute();
+              setIsMuted(nextMuted);
+            }}
+            className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold tracking-wider transition-all ${
+              !isMuted
+                ? "border-[#c8a96e] bg-[#c8a96e]/15 text-[#f3dfbd] shadow-sm"
+                : "border-white/10 bg-white/5 text-[#8894a4] hover:text-white"
+            }`}
+            title="Toggle celestial audio effects"
+          >
+            {!isMuted ? <Volume2 size={12} className="text-[#c8a96e]" /> : <VolumeX size={12} />}
+            <span>{!isMuted ? "AUDIO ON" : "AUDIO MUTED"}</span>
+          </button>
+
+          <span className="hidden md:inline text-[#8894a4] tracking-wider text-[10px]">
             TRAVELER: <strong className="text-[#f1f3f7]">{profile.nickname || "Traveler"}</strong>
           </span>
-          <span className="w-1 h-1 rounded-full bg-white/20" />
-          <span className="text-[#8894a4] tracking-wider text-[10px]">
+          <span className="hidden md:inline w-1 h-1 rounded-full bg-white/20" />
+          <span className="hidden sm:inline text-[#8894a4] tracking-wider text-[10px]">
             UID: <strong className="text-[#d8dde6] font-mono">{profile.uid}</strong>
           </span>
-          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/20" />
           <span className="px-2.5 py-0.5 rounded-full border border-[#c8a96e]/30 bg-[#c8a96e]/10 text-[#f2e2be] text-[10px] font-bold">
             AR {profile.adventureRank ?? 60} · WL {profile.worldLevel ?? 9}
           </span>
@@ -304,6 +348,7 @@ export default function UnifiedShowcaseView({
             onSelectCharacter={(char) => {
               setActiveCharacter(char);
               setFailedSplash(null);
+              playCelestialChime(587.33);
             }}
           />
         </section>
@@ -312,169 +357,176 @@ export default function UnifiedShowcaseView({
             SECTION 2: FEATURED CHARACTER DOSSIER (Pure Borderless Splash Art + Bento)
            ========================================================================= */}
         <div key={activeCharacter.id} className="dossier-animate-entry mt-6">
-            {/* Hero Banner: Borderless Centered Splash Art + Metadata */}
-            <section className="character-build-hero">
-              {/* Left: Pure Borderless High-Impact Character Artwork */}
-              <div className="character-hero-art-stage">
-                <div
-                  className="character-hero-ambient-glow"
-                  style={{ background: elementTheme.glow }}
-                  aria-hidden="true"
-                />
-                <div className="character-hero-art-frame">
-                  {splashSrc ? (
-                    <Image
-                      src={splashSrc}
-                      alt={activeCharacter.name}
-                      fill
-                      priority
-                      unoptimized
-                      sizes="(max-width: 900px) 100vw, 55vw"
-                      quality={90}
-                      className="character-hero-splash-image"
-                      onError={() => setFailedSplash(splashSrc)}
-                    />
-                  ) : (
-                    <span className="character-tile-placeholder" aria-hidden="true">✦</span>
-                  )}
+          {/* Hero Banner: Borderless Centered Splash Art + Metadata */}
+          <section className="character-build-hero">
+            {/* Left: Pure Borderless High-Impact Character Artwork with Parallax Hover */}
+            <div className="character-hero-art-stage">
+              <div
+                className="character-hero-ambient-glow"
+                style={{ background: elementTheme.glow }}
+                aria-hidden="true"
+              />
+              <div className="character-hero-art-frame">
+                {splashSrc ? (
+                  <Image
+                    src={splashSrc}
+                    alt={activeCharacter.name}
+                    fill
+                    priority
+                    unoptimized
+                    sizes="(max-width: 900px) 100vw, 55vw"
+                    quality={90}
+                    className="character-hero-splash-image"
+                    onError={() => setFailedSplash(splashSrc)}
+                  />
+                ) : (
+                  <span className="character-tile-placeholder" aria-hidden="true">✦</span>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Identity, Constellations, Lore, and Quick Summary Bento */}
+            <div className="character-build-intro">
+              <div className="eyebrow flex items-center gap-2 text-[9px] font-bold tracking-[0.22em] text-[#c8a96e]">
+                <span className="eyebrow-line w-6 h-[1px] bg-[#c8a96e]" />
+                CHARACTER DOSSIER · LIVE IN-GAME BUILD
+              </div>
+
+              <div className="character-title-row">
+                <h1 className="character-title">
+                  {activeCharacter.name}
+                  <span className="brand-period text-[#c8a96e]">.</span>
+                </h1>
+                <div className="character-rarity" aria-label={`${activeCharacter.rarity ?? 5} stars`}>
+                  {"★".repeat(activeCharacter.rarity ?? 5)}
                 </div>
               </div>
 
-              {/* Right: Identity, Constellations, and Quick Summary Bento */}
-              <div className="character-build-intro">
-                <div className="eyebrow flex items-center gap-2 text-[9px] font-bold tracking-[0.22em] text-[#c8a96e]">
-                  <span className="eyebrow-line w-6 h-[1px] bg-[#c8a96e]" />
-                  CHARACTER DOSSIER · LIVE IN-GAME BUILD
-                </div>
+              {/* Character Lore Quote */}
+              <p className="character-lore-quote text-xs text-[#9aa7b9] italic my-3 pl-3 border-l border-[#c8a96e]/60 font-serif leading-relaxed">
+                &ldquo;{currentLoreQuote}&rdquo;
+              </p>
 
-                <div className="character-title-row">
-                  <h1 className="character-title">
-                    {activeCharacter.name}
-                    <span className="brand-period text-[#c8a96e]">.</span>
-                  </h1>
-                  <div className="character-rarity" aria-label={`${activeCharacter.rarity ?? 5} stars`}>
-                    {"★".repeat(activeCharacter.rarity ?? 5)}
-                  </div>
-                </div>
-
-                {/* Identity Chips */}
-                <div className="character-identity-chips">
-                  <span
-                    className="element-chip"
-                    style={{
-                      borderColor: elementTheme.accent,
-                      backgroundColor: elementTheme.wash,
-                      color: elementTheme.accent,
-                    }}
-                  >
-                    <i style={{ backgroundColor: elementTheme.accent }} />
-                    {activeCharacter.element || "Adventurer"}
-                  </span>
-                  <span className="level-chip">
-                    LEVEL {activeCharacter.level ?? 90} / 90
-                  </span>
-                  <span className="friendship-chip">
-                    {activeCharacter.friendship != null
-                      ? `FRIENDSHIP ${activeCharacter.friendship}`
-                      : "PUBLIC SHOWCASE"}
-                  </span>
-                </div>
-
-                {/* Constellation Progress Track */}
-                <div className="constellation-track">
-                  <div className="constellation-track-info">
-                    <span className="constellation-label">CONSTELLATION</span>
-                    <strong style={{ color: elementTheme.accent }}>
-                      C{activeCharacter.constellation ?? 0}
-                    </strong>
-                  </div>
-                  <div className="constellation-dots">
-                    {Array.from({ length: 6 }, (_, index) => {
-                      const isUnlocked = index < (activeCharacter.constellation ?? 0);
-                      return (
-                        <span
-                          key={index}
-                          className={`constellation-dot ${isUnlocked ? "is-unlocked" : ""}`}
-                          style={
-                            isUnlocked
-                              ? {
-                                  borderColor: elementTheme.accent,
-                                  backgroundColor: elementTheme.wash,
-                                }
-                              : {}
-                          }
-                          title={`Constellation ${index + 1}: ${isUnlocked ? "Unlocked" : "Locked"}`}
-                        >
-                          <i style={isUnlocked ? { backgroundColor: elementTheme.accent } : {}} />
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Summary Bento Cards */}
-                <div className="character-build-quickstats">
-                  <div className="quickstat-card">
-                    <span>EQUIPPED WEAPON</span>
-                    <strong>{activeCharacter.weapon?.name || "Not equipped"}</strong>
-                    <small>
-                      {activeCharacter.weapon?.level
-                        ? `Lv. ${activeCharacter.weapon.level} · Refinement R${activeCharacter.weapon.refinement ?? 1}`
-                        : "Weapon details"}
-                    </small>
-                  </div>
-
-                  <div className="quickstat-card">
-                    <span>COMBAT CRIT VALUE</span>
-                    <strong className="cv-highlight">
-                      {activeCharacter.critValue != null ? `${activeCharacter.critValue} CV` : "—"}
-                    </strong>
-                    <small>
-                      {(activeCharacter.stats.find((s) => s.label === "CRIT Rate")?.value ?? "—")} CR / {(activeCharacter.stats.find((s) => s.label === "CRIT DMG")?.value ?? "—")} CD
-                    </small>
-                  </div>
-
-                  <div className="quickstat-card">
-                    <span>ARTIFACT LOADOUT</span>
-                    <strong>{activeCharacter.artifacts.length} / 5 Equipped</strong>
-                    <small className="truncate">
-                      {activeSetBonuses.length
-                        ? activeSetBonuses.map((b) => `${b.count}pc ${b.setName}`).join(", ")
-                        : "Artifact set details"}
-                    </small>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* =========================================================================
-                SECTION 3: BENTO DETAILS GRID (Combat Stats, Weapon, Artifacts, Talents)
-               ========================================================================= */}
-            <section className="character-build-content mt-12">
-              <div className="build-section-heading">
-                <div>
-                  <span className="eyebrow flex items-center gap-2 text-[9px] font-bold tracking-[0.2em] text-[#c8a96e]">
-                    <span className="eyebrow-line w-5 h-[1px] bg-[#c8a96e]" />
-                    TECHNICAL DOSSIER
-                  </span>
-                  <h2>Build & Combat Breakdown</h2>
-                </div>
-                <span className="collection-note text-xs text-[#7d8898]">
-                  Enka.Network verified showcase data
+              {/* Identity Chips */}
+              <div className="character-identity-chips">
+                <span
+                  className="element-chip"
+                  style={{
+                    borderColor: elementTheme.accent,
+                    backgroundColor: elementTheme.wash,
+                    color: elementTheme.accent,
+                  }}
+                >
+                  <i style={{ backgroundColor: elementTheme.accent }} />
+                  {activeCharacter.element || "Adventurer"}
+                </span>
+                <span className="level-chip">
+                  LEVEL {activeCharacter.level ?? 90} / 90
+                </span>
+                <span className="friendship-chip">
+                  {activeCharacter.friendship != null
+                    ? `FRIENDSHIP ${activeCharacter.friendship}`
+                    : "PUBLIC SHOWCASE"}
                 </span>
               </div>
 
-              <div className="build-details-grid">
-                {/* 1. Combat Attributes Panel */}
-                <section className="build-panel combat-panel">
-                  <div className="panel-header">
-                    <span className="build-panel-label">
-                      <Zap size={13} /> COMBAT ATTRIBUTES
-                    </span>
-                    <span className="panel-badge">LIVE VALUES</span>
-                  </div>
+              {/* Constellation Progress Track */}
+              <div className="constellation-track">
+                <div className="constellation-track-info">
+                  <span className="constellation-label">CONSTELLATION</span>
+                  <strong style={{ color: elementTheme.accent }}>
+                    C{activeCharacter.constellation ?? 0}
+                  </strong>
+                </div>
+                <div className="constellation-dots">
+                  {Array.from({ length: 6 }, (_, index) => {
+                    const isUnlocked = index < (activeCharacter.constellation ?? 0);
+                    return (
+                      <span
+                        key={index}
+                        className={`constellation-dot ${isUnlocked ? "is-unlocked" : ""}`}
+                        style={
+                          isUnlocked
+                            ? {
+                                borderColor: elementTheme.accent,
+                                backgroundColor: elementTheme.wash,
+                              }
+                            : {}
+                        }
+                        title={`Constellation ${index + 1}: ${isUnlocked ? "Unlocked" : "Locked"}`}
+                      >
+                        <i style={isUnlocked ? { backgroundColor: elementTheme.accent } : {}} />
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
 
-                  <div className="build-stat-grid">
+              {/* Summary Bento Cards */}
+              <div className="character-build-quickstats">
+                <div className="quickstat-card">
+                  <span>EQUIPPED WEAPON</span>
+                  <strong>{activeCharacter.weapon?.name || "Not equipped"}</strong>
+                  <small>
+                    {activeCharacter.weapon?.level
+                      ? `Lv. ${activeCharacter.weapon.level} · Refinement R${activeCharacter.weapon.refinement ?? 1}`
+                      : "Weapon details"}
+                  </small>
+                </div>
+
+                <div className="quickstat-card">
+                  <span>COMBAT CRIT VALUE</span>
+                  <strong className="cv-highlight">
+                    {activeCharacter.critValue != null ? `${activeCharacter.critValue} CV` : "—"}
+                  </strong>
+                  <small>
+                    {(activeCharacter.stats.find((s) => s.label === "CRIT Rate")?.value ?? "—")} CR / {(activeCharacter.stats.find((s) => s.label === "CRIT DMG")?.value ?? "—")} CD
+                  </small>
+                </div>
+
+                <div className="quickstat-card">
+                  <span>ARTIFACT LOADOUT</span>
+                  <strong>{activeCharacter.artifacts.length} / 5 Equipped</strong>
+                  <small className="truncate">
+                    {activeSetBonuses.length
+                      ? activeSetBonuses.map((b) => `${b.count}pc ${b.setName}`).join(", ")
+                      : "Artifact set details"}
+                  </small>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* =========================================================================
+              SECTION 3: BENTO DETAILS GRID (Combat Stats, Radar, Weapon, Artifacts, Talents)
+             ========================================================================= */}
+          <section className="character-build-content mt-12">
+            <div className="build-section-heading">
+              <div>
+                <span className="eyebrow flex items-center gap-2 text-[9px] font-bold tracking-[0.2em] text-[#c8a96e]">
+                  <span className="eyebrow-line w-5 h-[1px] bg-[#c8a96e]" />
+                  TECHNICAL DOSSIER
+                </span>
+                <h2>Build & Combat Breakdown</h2>
+              </div>
+              <span className="collection-note text-xs text-[#7d8898]">
+                Enka.Network verified showcase data
+              </span>
+            </div>
+
+            <div className="build-details-grid">
+              {/* 1. Combat Attributes & Stat Radar Panel */}
+              <section className="build-panel combat-panel">
+                <div className="panel-header">
+                  <span className="build-panel-label">
+                    <Zap size={13} /> COMBAT ATTRIBUTES
+                  </span>
+                  <span className="panel-badge">LIVE VALUES</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                  {/* Left Column: Attribute Numbers */}
+                  <div className="build-stat-grid !grid-cols-1">
                     {activeCharacter.stats.length ? (
                       activeCharacter.stats.map((stat) => (
                         <div className="build-stat" key={stat.label}>
@@ -492,93 +544,104 @@ export default function UnifiedShowcaseView({
                     )}
                   </div>
 
-                  {/* CRIT Efficiency Gauge */}
-                  <div className="mt-5">
-                    <CritRatioGauge
-                      critRate={critRateNumber}
-                      critDmg={critDmgNumber}
-                      critValue={activeCharacter.critValue}
+                  {/* Right Column: Hexagon Stat Radar Chart */}
+                  <div className="flex justify-center">
+                    <StatRadarChart
+                      stats={activeCharacter.stats}
+                      elementColor={elementTheme.accent}
+                      size={250}
                     />
                   </div>
-                </section>
+                </div>
 
-                {/* 2. Equipped Weapon Panel with 3D Tilt Card */}
-                <section className="build-panel weapon-panel">
-                  <div className="panel-header">
-                    <span className="build-panel-label">
-                      <Swords size={13} /> EQUIPPED WEAPON
-                    </span>
-                    {activeCharacter.weapon?.refinement && (
-                      <span className="refinement-pill">R{activeCharacter.weapon.refinement}</span>
-                    )}
-                  </div>
+                {/* CRIT Efficiency Dual Bar Gauge */}
+                <div className="mt-5">
+                  <CritRatioGauge
+                    critRate={critRateNumber}
+                    critDmg={critDmgNumber}
+                    critValue={activeCharacter.critValue}
+                  />
+                </div>
+              </section>
 
-                  {activeCharacter.weapon ? (
-                    <TiltCard maxTilt={6}>
-                      <div className="weapon-showcase">
-                        <EquipmentArtwork
-                          src={activeCharacter.weapon.icon}
-                          fallbackSrc={activeCharacter.weapon.iconFallback}
-                          alt={activeCharacter.weapon.name || "Weapon"}
-                          rarity={activeCharacter.weapon.rarity}
-                          kind="weapon"
-                        />
-                        <div className="weapon-showcase-info">
-                          <span className="equipment-kicker">
-                            {"★".repeat(activeCharacter.weapon.rarity ?? 4)} WEAPON
-                          </span>
-                          <h3>{activeCharacter.weapon.name || "Weapon"}</h3>
-                          <p className="weapon-level-text">
-                            Level {activeCharacter.weapon.level ?? 90} / 90 <span>·</span> Refinement R{activeCharacter.weapon.refinement ?? 1}
-                          </p>
-                          <div className="weapon-stats">
-                            {activeCharacter.weapon.baseAttack && (
-                              <div className="weapon-stat-pill">
-                                <span>Base ATK</span>
-                                <strong>{activeCharacter.weapon.baseAttack}</strong>
-                              </div>
-                            )}
-                            {activeCharacter.weapon.substat && (
-                              <div className="weapon-stat-pill">
-                                <span>{activeCharacter.weapon.substat.label}</span>
-                                <strong>{activeCharacter.weapon.substat.value}</strong>
-                              </div>
-                            )}
-                          </div>
+              {/* 2. Equipped Weapon Panel with 3D Tilt Card */}
+              <section className="build-panel weapon-panel">
+                <div className="panel-header">
+                  <span className="build-panel-label">
+                    <Swords size={13} /> EQUIPPED WEAPON
+                  </span>
+                  {activeCharacter.weapon?.refinement && (
+                    <span className="refinement-pill">R{activeCharacter.weapon.refinement}</span>
+                  )}
+                </div>
+
+                {activeCharacter.weapon ? (
+                  <TiltCard maxTilt={6}>
+                    <div className="weapon-showcase">
+                      <EquipmentArtwork
+                        src={activeCharacter.weapon.icon}
+                        fallbackSrc={activeCharacter.weapon.iconFallback}
+                        alt={activeCharacter.weapon.name || "Weapon"}
+                        rarity={activeCharacter.weapon.rarity}
+                        kind="weapon"
+                      />
+                      <div className="weapon-showcase-info">
+                        <span className="equipment-kicker">
+                          {"★".repeat(activeCharacter.weapon.rarity ?? 4)} WEAPON
+                        </span>
+                        <h3>{activeCharacter.weapon.name || "Weapon"}</h3>
+                        <p className="weapon-level-text">
+                          Level {activeCharacter.weapon.level ?? 90} / 90 <span>·</span> Refinement R{activeCharacter.weapon.refinement ?? 1}
+                        </p>
+                        <div className="weapon-stats">
+                          {activeCharacter.weapon.baseAttack && (
+                            <div className="weapon-stat-pill">
+                              <span>Base ATK</span>
+                              <strong>{activeCharacter.weapon.baseAttack}</strong>
+                            </div>
+                          )}
+                          {activeCharacter.weapon.substat && (
+                            <div className="weapon-stat-pill">
+                              <span>{activeCharacter.weapon.substat.label}</span>
+                              <strong>{activeCharacter.weapon.substat.value}</strong>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </TiltCard>
-                  ) : (
-                    <p className="build-empty">No weapon equipped.</p>
-                  )}
-                </section>
+                    </div>
+                  </TiltCard>
+                ) : (
+                  <p className="build-empty">No weapon equipped.</p>
+                )}
+              </section>
 
-                {/* 3. Artifacts Panel (All 5 Slots with Tilt Cards) */}
-                <section className="build-panel artifacts-panel">
-                  <div className="panel-header">
-                    <div className="panel-header-left">
-                      <span className="build-panel-label">
-                        <Sparkles size={13} /> ARTIFACTS · {activeCharacter.artifacts.length}/5
+              {/* 3. Artifacts Panel (All 5 Slots with Tilt Cards + Roll Inspector) */}
+              <section className="build-panel artifacts-panel">
+                <div className="panel-header">
+                  <div className="panel-header-left">
+                    <span className="build-panel-label">
+                      <Sparkles size={13} /> ARTIFACTS · {activeCharacter.artifacts.length}/5
+                    </span>
+                    {totalArtifactCV && (
+                      <span className="artifact-total-cv-pill">
+                        Total Substat CV: {totalArtifactCV}
                       </span>
-                      {totalArtifactCV && (
-                        <span className="artifact-total-cv-pill">
-                          Total Substat CV: {totalArtifactCV}
-                        </span>
-                      )}
-                    </div>
-                    <div className="set-bonus-tags">
-                      {activeSetBonuses.map((bonus) => (
-                        <span className="set-bonus-chip" key={bonus.setName}>
-                          {bonus.count}-Piece {bonus.setName}
-                        </span>
-                      ))}
-                    </div>
+                    )}
                   </div>
+                  <div className="set-bonus-tags">
+                    {activeSetBonuses.map((bonus) => (
+                      <span className="set-bonus-chip" key={bonus.setName}>
+                        {bonus.count}-Piece {bonus.setName}
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
-                  <div className="artifact-build-list">
-                    {activeCharacter.artifacts.map((artifact, index) => (
-                      <TiltCard maxTilt={5} key={`${artifact.slot}-${index}`}>
-                        <article className="artifact-build-item h-full">
+                <div className="artifact-build-list">
+                  {activeCharacter.artifacts.map((artifact, index) => (
+                    <TiltCard maxTilt={5} key={`${artifact.slot}-${index}`}>
+                      <article className="artifact-build-item h-full flex flex-col justify-between">
+                        <div>
                           <div className="artifact-visual-row">
                             <EquipmentArtwork
                               src={artifact.icon}
@@ -627,107 +690,120 @@ export default function UnifiedShowcaseView({
                               </div>
                             ))}
                           </div>
-                        </article>
-                      </TiltCard>
-                    ))}
-                    {!activeCharacter.artifacts.length && (
-                      <p className="build-empty">No equipped artifacts found.</p>
-                    )}
-                  </div>
-                  <p className="artifact-roll-note">
-                    Exact aggregated substats provided by Enka.Network. Crit Value (CV) is computed as (CRIT Rate × 2) + CRIT DMG.
-                  </p>
-                </section>
-
-                {/* 4. Talents Panel */}
-                <section className="build-panel talent-panel">
-                  <div className="panel-header">
-                    <span className="build-panel-label">
-                      <Crown size={13} /> TALENT LEVELS
-                    </span>
-                    <span className="panel-badge">COMBAT TALENTS</span>
-                  </div>
-
-                  <div className="talent-cards-grid">
-                    {activeCharacter.talents.length ? (
-                      activeCharacter.talents.map((talent, idx) => (
-                        <div
-                          className={`talent-card ${talent.isCrowned ? "is-crowned" : ""}`}
-                          key={`${talent.name}-${idx}`}
-                        >
-                          <div className="talent-icon-box">
-                            <TalentOrConstIcon
-                              src={talent.icon}
-                              fallbackSrc={talent.iconFallback}
-                              alt={talent.name}
-                            />
-                          </div>
-                          <div className="talent-details">
-                            <span className="talent-type-label">TALENT 0{idx + 1}</span>
-                            <h4 className="talent-name">{talent.name}</h4>
-                            <div className="talent-level-wrap">
-                              <span className="talent-level-number">Lv. {talent.level}</span>
-                              {talent.isCrowned && (
-                                <span className="crowned-badge">
-                                  <Crown size={11} /> CROWNED
-                                </span>
-                              )}
-                            </div>
-                          </div>
                         </div>
-                      ))
-                    ) : (
-                      <p className="build-empty">Talent data is not available.</p>
-                    )}
-                  </div>
-                </section>
 
-                {/* 5. Constellations Panel */}
-                <section className="build-panel constellation-panel">
-                  <div className="panel-header">
-                    <span className="build-panel-label">
-                      <Sparkles size={13} /> CONSTELLATIONS
-                    </span>
-                    <span className="panel-badge">
-                      {activeCharacter.constellation ?? 0} / 6 ACTIVATED
-                    </span>
-                  </div>
+                        {/* Interactive Artifact Roll Inspector Tier Badge & Pips */}
+                        <ArtifactRollInspector artifact={artifact} />
+                      </article>
+                    </TiltCard>
+                  ))}
+                  {!activeCharacter.artifacts.length && (
+                    <p className="build-empty">No equipped artifacts found.</p>
+                  )}
+                </div>
+                <p className="artifact-roll-note">
+                  Exact aggregated substats provided by Enka.Network. Crit Value (CV) is computed as (CRIT Rate × 2) + CRIT DMG.
+                </p>
+              </section>
 
-                  <div className="constellations-grid">
-                    {activeCharacter.constellations.map((c) => (
+              {/* 4. Talents Panel */}
+              <section className="build-panel talent-panel">
+                <div className="panel-header">
+                  <span className="build-panel-label">
+                    <Crown size={13} /> TALENT LEVELS
+                  </span>
+                  <span className="panel-badge">COMBAT TALENTS</span>
+                </div>
+
+                <div className="talent-cards-grid">
+                  {activeCharacter.talents.length ? (
+                    activeCharacter.talents.map((talent, idx) => (
                       <div
-                        key={c.index}
-                        className={`constellation-card ${c.unlocked ? "is-unlocked" : "is-locked"}`}
+                        className={`talent-card ${talent.isCrowned ? "is-crowned" : ""}`}
+                        key={`${talent.name}-${idx}`}
                       >
-                        <div className="constellation-icon-wrap">
+                        <div className="talent-icon-box">
                           <TalentOrConstIcon
-                            src={c.icon}
-                            fallbackSrc={c.iconFallback}
-                            alt={`Constellation ${c.index}`}
+                            src={talent.icon}
+                            fallbackSrc={talent.iconFallback}
+                            alt={talent.name}
                           />
-                          {!c.unlocked && (
-                            <div className="const-locked-overlay">
-                              <Lock size={12} />
-                            </div>
-                          )}
                         </div>
-                        <div className="constellation-card-info">
-                          <span className="const-num">C{c.index}</span>
-                          <span className="const-status">
-                            {c.unlocked ? "ACTIVATED" : "LOCKED"}
-                          </span>
+                        <div className="talent-details">
+                          <span className="talent-type-label">TALENT 0{idx + 1}</span>
+                          <h4 className="talent-name">{talent.name}</h4>
+                          <div className="talent-level-wrap">
+                            <span className="talent-level-number">Lv. {talent.level}</span>
+                            {talent.isCrowned && (
+                              <span className="crowned-badge">
+                                <Crown size={11} /> CROWNED
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </section>
-              </div>
+                    ))
+                  ) : (
+                    <p className="build-empty">Talent data is not available.</p>
+                  )}
+                </div>
+              </section>
 
-              <p className="mapping-notice">
-                This dossier contains only data exposed by {profile.nickname || "the player"}&apos;s public in-game character showcase via Enka.Network. No private credentials or hidden account data are accessed.
-              </p>
-            </section>
-          </div>
+              {/* 5. Constellations Panel with Interactive Star Map */}
+              <section className="build-panel constellation-panel">
+                <div className="panel-header">
+                  <span className="build-panel-label">
+                    <Sparkles size={13} /> CONSTELLATIONS
+                  </span>
+                  <span className="panel-badge">
+                    {activeCharacter.constellation ?? 0} / 6 ACTIVATED
+                  </span>
+                </div>
+
+                {/* Celestial Star Map Sky Atlas */}
+                <div className="mb-4">
+                  <ConstellationStarMap
+                    constellations={activeCharacter.constellations}
+                    elementColor={elementTheme.accent}
+                    elementGlow={elementTheme.glow}
+                  />
+                </div>
+
+                <div className="constellations-grid">
+                  {activeCharacter.constellations.map((c) => (
+                    <div
+                      key={c.index}
+                      className={`constellation-card ${c.unlocked ? "is-unlocked" : "is-locked"}`}
+                    >
+                      <div className="constellation-icon-wrap">
+                        <TalentOrConstIcon
+                          src={c.icon}
+                          fallbackSrc={c.iconFallback}
+                          alt={`Constellation ${c.index}`}
+                        />
+                        {!c.unlocked && (
+                          <div className="const-locked-overlay">
+                            <Lock size={12} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="constellation-card-info">
+                        <span className="const-num">C{c.index}</span>
+                        <span className="const-status">
+                          {c.unlocked ? "ACTIVATED" : "LOCKED"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            <p className="mapping-notice">
+              This dossier contains only data exposed by {profile.nickname || "the player"}&apos;s public in-game character showcase via Enka.Network. No private credentials or hidden account data are accessed.
+            </p>
+          </section>
+        </div>
       </main>
 
       {/* Showcase Footer */}

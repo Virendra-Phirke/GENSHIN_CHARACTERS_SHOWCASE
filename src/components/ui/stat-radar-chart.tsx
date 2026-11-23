@@ -9,6 +9,8 @@ interface StatRadarChartProps {
   size?: number;
 }
 
+const RINGS = [0.25, 0.5, 0.75, 1];
+
 export default function StatRadarChart({
   stats,
   elementColor = "#c8a96e",
@@ -38,9 +40,8 @@ export default function StatRadarChart({
   }, [hpRaw, atkRaw, defRaw, crRaw, cdRaw, erRaw]);
 
   // Generate hexagon points for concentric rings (25%, 50%, 75%, 100%)
-  const rings = [0.25, 0.5, 0.75, 1];
   const ringPolygons = useMemo(() => {
-    return rings.map((scale) => {
+    return RINGS.map((scale) => {
       return Array.from({ length: 6 }, (_, i) => {
         const angle = (Math.PI / 3) * i - Math.PI / 2;
         const x = center + radius * scale * Math.cos(angle);
