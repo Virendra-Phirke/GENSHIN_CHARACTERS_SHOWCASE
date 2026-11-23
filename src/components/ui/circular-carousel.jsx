@@ -77,9 +77,9 @@ const PRESETS = {
     perspective: 2500,
     curve: 1,
     spread: 1,
-    inward: true,
+    inward: false,
     billboard: false,
-    backfaces: false,
+    backfaces: true,
     window: 0
   },
   orbit: {
@@ -100,9 +100,9 @@ const PRESETS = {
     curve: 0,
     spread: 1,
     inward: false,
-    billboard: true,
-    backfaces: false,
-    window: 0
+    billboard: false,
+    backfaces: true,
+    window: 1.7
   },
   panorama: {
     axis: 'y',
@@ -599,7 +599,7 @@ const CircularCarousel = ({
 
         const world = wrap(base + angle);
         const facing = Math.cos(world * TO_RAD);
-        if (s.layout.inward) card.style.visibility = Math.abs(world) > 115 ? 'hidden' : '';
+        if (s.layout.inward) card.style.visibility = Math.abs(world) > 155 ? 'hidden' : '';
         const fade = Math.min(0.42, s.depthFade * Math.pow((1 - facing) / 2, 1.25));
         card.style.setProperty('--cc-depth', fade.toFixed(3));
       }
