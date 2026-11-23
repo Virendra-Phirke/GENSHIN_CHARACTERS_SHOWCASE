@@ -175,7 +175,7 @@ export default function ParallaxHeroArt({
 
         {/* Layer 2 (Middle Layer): High-Impact Character Splash Artwork with 3D Tilt */}
         <div
-          className="character-hero-art-frame relative w-full h-[460px] sm:h-[560px] max-w-[560px] transition-transform duration-200 ease-out"
+          className="character-hero-art-frame relative w-full h-full transition-transform duration-200 ease-out cursor-pointer"
           style={{
             transform: `perspective(1200px) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg) translateZ(25px)`,
             transformStyle: "preserve-3d",
@@ -190,8 +190,11 @@ export default function ParallaxHeroArt({
               priority
               unoptimized
               sizes="(max-width: 900px) 100vw, 55vw"
-              quality={90}
-              className="character-hero-splash-image object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.85)] filter transition-all duration-300 group-hover:drop-shadow-[0_25px_45px_rgba(0,0,0,0.95)]"
+              quality={95}
+              className="object-contain transition-all duration-300"
+              style={{
+                filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.6)) brightness(1.08) saturate(1.1)",
+              }}
               onError={onImageError}
             />
           ) : (
