@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useRef, useState, useEffect } from "react";
-import { Download, Copy, Check, X, Camera, Sparkles } from "lucide-react";
+import { Download, Copy, Check, X, Camera } from "lucide-react";
 import type { ShowcaseCharacter, PlayerShowcase } from "@/lib/types";
 
 interface ShareBuildCardModalProps {
@@ -27,9 +27,9 @@ export default function ShareBuildCardModal({
 
   useEffect(() => {
     if (isOpen) {
-      setFlash(true);
+      const flashTimer = setTimeout(() => setFlash(true), 0);
       const timer = setTimeout(() => setFlash(false), 350);
-      return () => clearTimeout(timer);
+      return () => { clearTimeout(flashTimer); clearTimeout(timer); };
     }
   }, [isOpen]);
 

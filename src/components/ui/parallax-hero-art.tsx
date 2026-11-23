@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Maximize2, X, Sparkles } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 import type { ShowcaseCharacter } from "@/lib/types";
 
 interface ParallaxHeroArtProps {

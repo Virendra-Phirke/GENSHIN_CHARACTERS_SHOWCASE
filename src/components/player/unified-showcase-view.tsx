@@ -84,14 +84,14 @@ function CountUpStat({
 
   useEffect(() => {
     if (!numericMatch) {
-      setDisplayValue(value);
-      return;
+      const t = setTimeout(() => setDisplayValue(value), 0);
+      return () => clearTimeout(t);
     }
     const cleanStr = numericMatch[1].replace(/,/g, "");
     const target = parseFloat(cleanStr);
     if (isNaN(target)) {
-      setDisplayValue(value);
-      return;
+      const t = setTimeout(() => setDisplayValue(value), 0);
+      return () => clearTimeout(t);
     }
 
     const hasDecimal = cleanStr.includes(".");
@@ -100,7 +100,7 @@ function CountUpStat({
     const prefix = value.slice(0, numericMatch.index);
     const suffix = value.slice((numericMatch.index ?? 0) + numericMatch[0].length);
 
-    let start = 0;
+    const start = 0;
     const startTime = performance.now();
 
     const animate = (now: number) => {
@@ -125,6 +125,7 @@ function CountUpStat({
 
     const animId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, duration]);
 
   return <span>{displayValue}</span>;
