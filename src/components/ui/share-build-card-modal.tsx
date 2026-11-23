@@ -35,7 +35,6 @@ function getRarityStars(rarity = 5) {
 
 function ArtifactCard({ artifact, elementAccent }: { artifact: ShowcaseArtifact; elementAccent: string }) {
   const mainVal = artifact.mainStat?.value ?? "—";
-  const mainLabel = artifact.mainStat?.label ?? artifact.slot;
   const slotIcon: Record<string, string> = {
     flower: "✿", plume: "🪶", sands: "⏳", goblet: "🏺", circlet: "👑",
   };

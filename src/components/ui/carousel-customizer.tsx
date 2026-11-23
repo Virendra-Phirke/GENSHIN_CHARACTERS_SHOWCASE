@@ -15,7 +15,8 @@ export interface CarouselCustomConfig {
   autoplay: "drift" | "step" | "none";
   speed: number;
   interval: number;
-  direction: "right" | "left";
+  direction: "right" | "left" | "bounce";
+  bounceInterval: number;
   momentum: number;
   parallax: number;
   stretch: number;
@@ -42,7 +43,8 @@ export const DEFAULT_CAROUSEL_CONFIG: CarouselCustomConfig = {
   autoplay: "drift",
   speed: 7,
   interval: 3,
-  direction: "left",
+  direction: "bounce",
+  bounceInterval: 8,
   momentum: 0.55,
   parallax: 0.3,
   stretch: 0,
@@ -344,13 +346,27 @@ export default function CarouselCustomizer({
             label="Direction"
             value={config.direction}
             options={[
-              { label: "Right", value: "right" },
-              { label: "Left", value: "left" },
+              { label: "Loop Right ↔ Left", value: "bounce" },
+              { label: "Right to Left ←", value: "left" },
+              { label: "Left to Right →", value: "right" },
             ]}
             onChange={(val) =>
               updateField("direction", val as CarouselCustomConfig["direction"])
             }
           />
+
+          {/* Bounce Interval (only when bounce is selected) */}
+          {config.direction === "bounce" && (
+            <ScrubberRow
+              label="Loop Interval"
+              min={3}
+              max={30}
+              step={1}
+              value={config.bounceInterval ?? 8}
+              suffix="s"
+              onChange={(val) => updateField("bounceInterval", Math.round(val))}
+            />
+          )}
 
           {/* Stretch */}
           <ScrubberRow

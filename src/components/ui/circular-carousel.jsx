@@ -191,6 +191,7 @@ const CircularCarousel = ({
   speed = 14,
   interval = 3,
   direction = 'left',
+  bounceInterval = 8,
   draggable = true,
   momentum = 0.6,
   snap = true,
@@ -293,6 +294,7 @@ const CircularCarousel = ({
     stepAt: 0,
     suppressClick: false,
     wheelTimer: 0,
+    bounceAt: 0,
     fit: 1,
     shift: 0,
     drop: 0,
@@ -313,6 +315,8 @@ const CircularCarousel = ({
     autoplay: reduced ? 'off' : autoplay,
     speed,
     interval: Math.max(0.5, interval),
+    direction,
+    bounceInterval: Math.max(2, bounceInterval || 8),
     draggable,
     momentum: clamp(momentum, 0, 1),
     snap,
@@ -334,6 +338,7 @@ const CircularCarousel = ({
   useEffect(() => {
     directionSignRef.current = directionSign;
     stateRef.current.dir = directionSign;
+    stateRef.current.bounceAt = 0;
     wakeRef.current();
   }, [directionSign]);
 
@@ -409,13 +414,15 @@ const CircularCarousel = ({
       const state = stateRef.current;
       state.hover = false;
       state.holdUntil = 0;
-      state.dir = directionSign;
+      if (settingsRef.current.direction !== 'bounce') {
+        state.dir = directionSignRef.current;
+      }
       if (state.target !== null && Math.abs(state.target - state.angle) < 1.5) {
         state.target = null;
       }
       wakeRef.current();
     }, 2200);
-  }, [directionSign]);
+  }, []);
 
   const resetInteractionTimerRef = useRef(resetInteractionTimer);
   useEffect(() => {
@@ -534,6 +541,21 @@ const CircularCarousel = ({
 
       if (!state.dir) state.dir = directionSignRef.current || -1;
       const paused = (s.pauseOnHover && state.hover) || state.drag || now < state.holdUntil;
+
+      // Handle bidirectional bounce loop (right to left <-> left to right)
+      if (s.direction === 'bounce' && !paused && !state.intro && state.introDone) {
+        if (!state.bounceAt) {
+          state.bounceAt = now + s.bounceInterval * 1000;
+        } else if (now >= state.bounceAt) {
+          state.dir = -state.dir;
+          directionSignRef.current = state.dir;
+          state.bounceAt = now + s.bounceInterval * 1000;
+        }
+        busy = true;
+      } else if (s.direction !== 'bounce') {
+        state.bounceAt = 0;
+      }
+
       const cruise = s.autoplay === 'drift' && !paused && !state.intro ? s.speed * state.dir : 0;
       let busy = Boolean(state.intro) || state.drag;
 

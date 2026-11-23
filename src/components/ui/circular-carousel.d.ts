@@ -22,7 +22,8 @@ export interface CircularCarouselProps {
   autoplay?: "drift" | "step" | "none" | boolean | string;
   speed?: number;
   interval?: number;
-  direction?: "left" | "right" | string;
+  direction?: "left" | "right" | "bounce" | string;
+  bounceInterval?: number;
   draggable?: boolean;
   momentum?: number;
   snap?: boolean;
