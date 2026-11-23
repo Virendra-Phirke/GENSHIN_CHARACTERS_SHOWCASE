@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { ChevronLeft, ChevronRight, Filter, Pause, Play, Sparkles, Swords } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, Pause, Play } from "lucide-react";
 import type { ShowcaseCharacter } from "@/lib/types";
 
 interface RotatingCharacterCarouselProps {
@@ -276,69 +276,11 @@ export default function RotatingCharacterCarousel({
                 {/* Vignette Gradients */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0e141f] via-[#0e141f]/35 to-transparent pointer-events-none" />
 
-                {/* Top Badges */}
-                <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10 pointer-events-none">
-                  <span
-                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase backdrop-blur-md border"
-                    style={{
-                      color: charElement.accent,
-                      backgroundColor: charElement.bg,
-                      borderColor: charElement.accent,
-                    }}
-                  >
-                    <i
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: charElement.accent }}
-                    />
-                    {char.element || "Genshin"}
-                  </span>
-
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] font-bold border backdrop-blur-md ${
-                      char.constellation
-                        ? "bg-[#c8a96e]/20 border-[#c8a96e]/60 text-[#f6e5c5]"
-                        : "bg-black/60 border-white/15 text-[#a8b3c2]"
-                    }`}
-                  >
-                    C{char.constellation ?? 0}
-                  </span>
-                </div>
-
-                {/* Active Focus Pill */}
-                {isCurrent && (
-                  <div className="absolute top-11 left-3 z-10">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#c8a96e] text-[#12161f] text-[8px] font-extrabold tracking-wider shadow-lg">
-                      <Sparkles size={10} /> ACTIVE DOSSIER
-                    </span>
-                  </div>
-                )}
-
-                {/* Card Bottom Details */}
-                <div className="absolute bottom-0 inset-x-0 p-3.5 z-10 bg-gradient-to-t from-[#0b0f16] via-[#0b0f16]/95 to-transparent">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <h4 className="text-base font-semibold text-[#f1f3f7] tracking-tight truncate">
-                      {char.name}
-                    </h4>
-                    <span className="text-[10px] text-[#e0bd75] tracking-widest shrink-0">
-                      {"★".repeat(char.rarity ?? 5)}
-                    </span>
-                  </div>
-
-                  {/* Weapon Pill */}
-                  <div className="mt-1.5 flex items-center justify-between text-[10px] text-[#97a3b4]">
-                    <div className="flex items-center gap-1 truncate">
-                      <Swords size={11} className="text-[#c8a96e] shrink-0" />
-                      <span className="truncate">
-                        {char.weapon?.name || "Weapon"}
-                        {char.weapon?.refinement != null && ` R${char.weapon.refinement}`}
-                      </span>
-                    </div>
-                    {char.critValue != null && (
-                      <span className="px-1.5 py-0.5 rounded bg-[#c8a96e]/15 border border-[#c8a96e]/30 text-[#ecd7ab] font-mono text-[9px] font-bold shrink-0">
-                        {char.critValue} CV
-                      </span>
-                    )}
-                  </div>
+                {/* Card Bottom - Only Character Name */}
+                <div className="absolute bottom-0 inset-x-0 p-4 z-10 bg-gradient-to-t from-[#0b0f16] via-[#0b0f16]/90 to-transparent">
+                  <h4 className="text-base sm:text-lg font-semibold text-[#f1f3f7] tracking-tight truncate text-center">
+                    {char.name}
+                  </h4>
                 </div>
               </div>
             </div>

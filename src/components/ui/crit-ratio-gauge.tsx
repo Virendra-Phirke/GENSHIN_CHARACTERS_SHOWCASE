@@ -17,20 +17,6 @@ export default function CritRatioGauge({
   const ratio = critRate > 0 ? (critDmg / critRate).toFixed(2) : "0.00";
   const cv = critValue ?? Number(((critRate * 2) + critDmg).toFixed(1));
 
-  // Determine quality tier
-  let cvTier = "Balanced";
-  let tierColor = "#a8b5c8";
-  if (cv >= 340) {
-    cvTier = "Godly Tier";
-    tierColor = "#ffd700";
-  } else if (cv >= 300) {
-    cvTier = "Top Tier";
-    tierColor = "#e6bf79";
-  } else if (cv >= 250) {
-    cvTier = "Highly Invested";
-    tierColor = "#a8d8e8";
-  }
-
   // Normalized visual gauge calculation
   const clampedCR = Math.min(Math.max(critRate, 5), 100);
   const clampedCD = Math.min(Math.max(critDmg, 50), 300);
@@ -39,22 +25,10 @@ export default function CritRatioGauge({
 
   return (
     <div className="crit-gauge-card p-4 rounded border border-white/10 bg-gradient-to-br from-[#161d2a]/90 to-[#0e131d]/95">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Sparkles size={13} className="text-[#c8a96e]" />
-          <span className="text-[9px] font-bold tracking-[0.16em] text-[#c8a96e] uppercase">
-            Combat Crit Efficiency
-          </span>
-        </div>
-        <span
-          className="text-[9px] font-bold tracking-wider px-2 py-0.5 rounded border"
-          style={{
-            borderColor: tierColor,
-            color: tierColor,
-            backgroundColor: "rgba(200,169,110,0.08)",
-          }}
-        >
-          {cvTier}
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles size={13} className="text-[#c8a96e]" />
+        <span className="text-[9px] font-bold tracking-[0.16em] text-[#c8a96e] uppercase">
+          Combat Crit Efficiency
         </span>
       </div>
 

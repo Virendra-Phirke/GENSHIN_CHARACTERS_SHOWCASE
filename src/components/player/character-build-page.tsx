@@ -335,7 +335,6 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                 <span className="eyebrow">EQUIPMENT & ATTRIBUTES</span>
                 <h2>Complete Build Analysis</h2>
               </div>
-              <span className="collection-note">Verified Enka.Network public combat values</span>
             </div>
 
             <div className="build-details-grid">
@@ -491,9 +490,6 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                     <p className="build-empty">No equipped artifacts found.</p>
                   )}
                 </div>
-                <p className="artifact-roll-note">
-                  Exact aggregated substats provided by Enka.Network. Crit Value (CV) is computed as (CRIT Rate × 2) + CRIT DMG.
-                </p>
               </section>
 
               {/* 4. Talents Panel */}
@@ -576,10 +572,6 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                 </div>
               </section>
             </div>
-
-            <p className="mapping-notice">
-              This dossier contains only data exposed by {profile.nickname || "the player"}&apos;s public in-game character showcase via Enka.Network. No private credentials or hidden account data are accessed.
-            </p>
           </section>
         </>
       ) : null}
