@@ -26,21 +26,22 @@ export default function RotatingCharacterCarousel({
   activeCharacterId,
   onSelectCharacter,
 }: RotatingCharacterCarouselProps) {
+  const [prevActiveId, setPrevActiveId] = useState(activeCharacterId);
   const [currentIndex, setCurrentIndex] = useState(() => {
     const idx = characters.findIndex((c) => c.id === activeCharacterId);
     return idx >= 0 ? idx : 0;
   });
 
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Sync index when activeCharacterId prop changes externally
-  useEffect(() => {
+  if (prevActiveId !== activeCharacterId) {
+    setPrevActiveId(activeCharacterId);
     const idx = characters.findIndex((c) => c.id === activeCharacterId);
     if (idx >= 0) {
       setCurrentIndex(idx);
     }
-  }, [activeCharacterId, characters]);
+  }
+
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Touch swipe support
   const touchStartXRef = useRef<number | null>(null);

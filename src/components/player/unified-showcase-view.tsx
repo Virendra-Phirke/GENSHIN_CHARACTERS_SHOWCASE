@@ -5,7 +5,6 @@ import Link from "next/link";
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Crown,
-  Lock,
   RefreshCw,
   ShieldCheck,
   Sparkles,
