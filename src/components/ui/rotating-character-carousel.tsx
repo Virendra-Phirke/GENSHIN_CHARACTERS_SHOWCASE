@@ -54,7 +54,7 @@ export default function RotatingCharacterCarousel({
   useEffect(() => {
     let animId: number;
     let lastTime = performance.now();
-    // 360 degrees in 54 seconds = calm, smooth, cinematic speed
+    // 360 degrees in 60 seconds = calm, smooth, cinematic speed
     const speed = 360 / 60000;
 
     const tick = (now: number) => {
@@ -88,7 +88,7 @@ export default function RotatingCharacterCarousel({
   const desiredGap = isMobile ? 28 : 55;
   const angleStepRad = Math.PI / Math.max(total, 6);
   const radius = Math.round((cardWidth + desiredGap) / (2 * Math.sin(angleStepRad)));
-  const durationSeconds = 54;
+  const durationSeconds = 60;
 
   return (
     <div className="rotating-carousel-container relative w-full overflow-hidden py-8 select-none">
