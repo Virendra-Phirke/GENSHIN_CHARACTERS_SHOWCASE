@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { ChevronLeft, ChevronRight, Filter, Pause, Play } from "lucide-react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import type { ShowcaseCharacter } from "@/lib/types";
 
 interface RotatingCharacterCarouselProps {
@@ -21,25 +21,16 @@ const ELEMENT_COLORS: Record<string, { accent: string; bg: string; glow: string 
   Dendro: { accent: "#a8c878", bg: "rgba(168,200,120,.12)", glow: "rgba(168,200,120,.38)" },
 };
 
-const ALL_ELEMENTS = ["ALL", "Cryo", "Hydro", "Pyro", "Electro", "Anemo", "Geo", "Dendro"];
-
 export default function RotatingCharacterCarousel({
   characters,
   activeCharacterId,
   onSelectCharacter,
 }: RotatingCharacterCarouselProps) {
-  const [selectedElementFilter, setSelectedElementFilter] = useState("ALL");
-
-  // Filtered characters
-  const filteredCharacters = useMemo(() => {
-    if (selectedElementFilter === "ALL") return characters;
-    return characters.filter((c) => c.element === selectedElementFilter);
-  }, [characters, selectedElementFilter]);
-
-  const activeIndex = filteredCharacters.findIndex((c) => c.id === activeCharacterId);
+  const activeIndex = characters.findIndex((c) => c.id === activeCharacterId);
   const currentIndex = activeIndex >= 0 ? activeIndex : 0;
 
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // Touch swipe support
@@ -54,14 +45,14 @@ export default function RotatingCharacterCarousel({
 
   const selectIndex = useCallback(
     (index: number) => {
-      if (!filteredCharacters.length) return;
-      const normalizedIndex = (index + filteredCharacters.length) % filteredCharacters.length;
-      const target = filteredCharacters[normalizedIndex];
+      if (!characters.length) return;
+      const normalizedIndex = (index + characters.length) % characters.length;
+      const target = characters[normalizedIndex];
       if (target) {
         onSelectCharacter(target);
       }
     },
-    [filteredCharacters, onSelectCharacter]
+    [characters, onSelectCharacter]
   );
 
   const handleNext = useCallback(() => {
@@ -82,14 +73,14 @@ export default function RotatingCharacterCarousel({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleNext, handlePrev]);
 
-  // Auto-rotation
+  // Smooth continuous right-to-left auto-rotation
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || isHovered) return;
     const interval = setInterval(() => {
       handleNext();
-    }, 4500);
+    }, 3600);
     return () => clearInterval(interval);
-  }, [isAutoPlaying, handleNext]);
+  }, [isAutoPlaying, isHovered, handleNext]);
 
   // Touch swipe handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -106,7 +97,7 @@ export default function RotatingCharacterCarousel({
     touchStartXRef.current = null;
   };
 
-  const activeChar = filteredCharacters[currentIndex] ?? characters[0];
+  const activeChar = characters[currentIndex] ?? characters[0];
   const activeElement = ELEMENT_COLORS[activeChar?.element || ""] ?? {
     accent: "#c8a96e",
     bg: "rgba(200,169,110,.12)",
@@ -118,6 +109,8 @@ export default function RotatingCharacterCarousel({
       className="rotating-carousel-container relative w-full overflow-hidden py-8 select-none"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Carousel Top Controls & Active Indicator */}
       <div className="carousel-header mb-6 flex flex-wrap items-center justify-between gap-4 px-4 sm:px-8">
@@ -146,8 +139,8 @@ export default function RotatingCharacterCarousel({
                 ? "border-[#c8a96e] bg-[#c8a96e]/15 text-[#f3dfbd]"
                 : "border-white/10 bg-white/5 text-[#9ba6b6] hover:border-white/20 hover:text-white"
             }`}
-            title={isAutoPlaying ? "Pause auto-rotation" : "Enable slow auto-rotation"}
-            aria-label={isAutoPlaying ? "Pause auto-rotation" : "Enable slow auto-rotation"}
+            title={isAutoPlaying ? "Pause auto-rotation" : "Enable right-to-left rotation"}
+            aria-label={isAutoPlaying ? "Pause auto-rotation" : "Enable right-to-left rotation"}
           >
             {isAutoPlaying ? <Pause size={14} /> : <Play size={14} />}
           </button>
@@ -163,7 +156,7 @@ export default function RotatingCharacterCarousel({
           </button>
 
           <span className="carousel-counter text-xs font-mono text-[#8a96a7] px-1">
-            {String(currentIndex + 1).padStart(2, "0")} / {String(filteredCharacters.length).padStart(2, "0")}
+            {String(currentIndex + 1).padStart(2, "0")} / {String(characters.length).padStart(2, "0")}
           </span>
 
           <button
@@ -178,33 +171,6 @@ export default function RotatingCharacterCarousel({
         </div>
       </div>
 
-      {/* Element Quick Filter Pills */}
-      <div className="element-filter-bar mb-6 flex items-center justify-center gap-1.5 px-4 overflow-x-auto scrollbar-none">
-        <Filter size={11} className="text-[#8c97a7] mr-1 hidden sm:inline" />
-        {ALL_ELEMENTS.map((el) => {
-          const isSelected = selectedElementFilter === el;
-          const elColor = el === "ALL" ? "#c8a96e" : ELEMENT_COLORS[el]?.accent ?? "#c8a96e";
-
-          return (
-            <button
-              key={el}
-              type="button"
-              onClick={() => {
-                setSelectedElementFilter(el);
-              }}
-              className={`px-2.5 py-1 rounded text-[10px] font-bold tracking-wider uppercase transition-all duration-200 border ${
-                isSelected
-                  ? "border-[#c8a96e] bg-[#c8a96e]/20 text-[#f3dfbd] shadow-md"
-                  : "border-white/10 bg-white/5 text-[#8a96a6] hover:border-white/20 hover:text-white"
-              }`}
-              style={isSelected ? { borderColor: elColor, color: elColor } : {}}
-            >
-              {el}
-            </button>
-          );
-        })}
-      </div>
-
       {/* 3D Rotating Cards Stage */}
       <div className="carousel-3d-stage relative h-[380px] sm:h-[440px] w-full flex items-center justify-center">
         {/* Ambient Element Backdrop */}
@@ -213,14 +179,14 @@ export default function RotatingCharacterCarousel({
           style={{ background: activeElement.glow }}
         />
 
-        {filteredCharacters.map((char, index) => {
-          const total = filteredCharacters.length;
+        {characters.map((char, index) => {
+          const total = characters.length;
           let offset = index - currentIndex;
           if (offset > total / 2) offset -= total;
           if (offset < -total / 2) offset += total;
 
-          // Only render cards within visible radius (-3 to +3)
-          const isVisible = Math.abs(offset) <= 3;
+          // Render visible cards within buffer (-4 to +4)
+          const isVisible = Math.abs(offset) <= 4;
           if (!isVisible) return null;
 
           const isCurrent = offset === 0;
@@ -230,18 +196,22 @@ export default function RotatingCharacterCarousel({
             glow: "rgba(200,169,110,.35)",
           };
 
-          // 3D Transform calculations
-          const rotateY = offset * 28;
-          const translateX = offset * (isMobile ? 120 : 190);
-          const translateZ = -Math.abs(offset) * 130;
-          const scale = 1 - Math.abs(offset) * 0.12;
-          const opacity = isCurrent ? 1 : Math.max(0.25, 1 - Math.abs(offset) * 0.28);
-          const zIndex = 20 - Math.abs(offset);
+          // 3D Transform calculations for smooth right-to-left rotation
+          const rotateY = offset * 26;
+          const translateX = offset * (isMobile ? 125 : 195);
+          const translateZ = -Math.abs(offset) * 125;
+          const scale = Math.max(0.68, 1 - Math.abs(offset) * 0.11);
+          const opacity = isCurrent
+            ? 1
+            : Math.abs(offset) >= 4
+            ? 0
+            : Math.max(0.2, 1 - Math.abs(offset) * 0.25);
+          const zIndex = 25 - Math.abs(offset);
 
           return (
             <div
               key={char.id}
-              className={`carousel-card-item absolute cursor-pointer rounded-lg overflow-hidden select-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              className={`carousel-card-item absolute cursor-pointer rounded-lg overflow-hidden select-none transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
                 isCurrent ? "is-active-card ring-2 ring-[#c8a96e]/70" : "hover:brightness-110"
               }`}
               style={{
@@ -290,7 +260,7 @@ export default function RotatingCharacterCarousel({
 
       {/* Quick Jump Character Thumbnails Bar */}
       <div className="carousel-thumbnails-bar mt-6 flex items-center justify-center gap-2 px-4 overflow-x-auto scrollbar-none">
-        {filteredCharacters.map((c, i) => {
+        {characters.map((c, i) => {
           const isActive = i === currentIndex;
           const cElem = ELEMENT_COLORS[c.element || ""] ?? { accent: "#c8a96e" };
           return (
