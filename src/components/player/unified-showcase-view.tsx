@@ -4,7 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState, useMemo } from "react";
 import {
+  Camera,
   Crown,
+  Flame,
   RefreshCw,
   ShieldCheck,
   Sparkles,
@@ -21,6 +23,112 @@ import CritRatioGauge from "@/components/ui/crit-ratio-gauge";
 import StatRadarChart from "@/components/ui/stat-radar-chart";
 import ConstellationStarMap from "@/components/ui/constellation-star-map";
 import ArtifactRollInspector from "@/components/ui/artifact-roll-inspector";
+import ParallaxHeroArt from "@/components/ui/parallax-hero-art";
+import SectionConstellationNav from "@/components/ui/section-constellation-nav";
+import ShareBuildCardModal from "@/components/ui/share-build-card-modal";
+
+// ---------------------------------------------------------------------------
+// FEATURE 5: Fluid Inertia Smooth Scroll with Dynamic Velocity Tilt
+// ---------------------------------------------------------------------------
+function useScrollVelocity() {
+  const [velocityTilt, setVelocityTilt] = useState(0);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let lastTime = performance.now();
+    let animId: number;
+
+    const handleScroll = () => {
+      const now = performance.now();
+      const currentY = window.scrollY;
+      const dt = Math.max(now - lastTime, 8);
+      const dy = currentY - lastY;
+      const v = (dy / dt) * 16; // velocity px/frame
+
+      // Tilt angle clamped between -2.2deg and +2.2deg
+      const targetTilt = Math.min(Math.max(v * -0.15, -2.2), 2.2);
+      setVelocityTilt(targetTilt);
+
+      lastY = currentY;
+      lastTime = now;
+
+      // Spring back to 0
+      cancelAnimationFrame(animId);
+      animId = requestAnimationFrame(() => {
+        setVelocityTilt((prev) => prev * 0.82);
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(animId);
+    };
+  }, []);
+
+  return velocityTilt;
+}
+
+// ---------------------------------------------------------------------------
+// FEATURE 6: Scroll-Driven Stat Counter Animation (CountUp on In-View)
+// ---------------------------------------------------------------------------
+function CountUpStat({
+  value,
+  duration = 900,
+}: {
+  value: string;
+  duration?: number;
+}) {
+  const [displayValue, setDisplayValue] = useState(value);
+  const numericMatch = value.match(/([\d,.]+)/);
+
+  useEffect(() => {
+    if (!numericMatch) {
+      setDisplayValue(value);
+      return;
+    }
+    const cleanStr = numericMatch[1].replace(/,/g, "");
+    const target = parseFloat(cleanStr);
+    if (isNaN(target)) {
+      setDisplayValue(value);
+      return;
+    }
+
+    const hasDecimal = cleanStr.includes(".");
+    const decimals = hasDecimal ? cleanStr.split(".")[1].length : 0;
+    const hasComma = value.includes(",");
+    const prefix = value.slice(0, numericMatch.index);
+    const suffix = value.slice((numericMatch.index ?? 0) + numericMatch[0].length);
+
+    let start = 0;
+    const startTime = performance.now();
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out quartic
+      const ease = 1 - Math.pow(1 - progress, 4);
+      const current = start + (target - start) * ease;
+
+      const formatted = hasComma
+        ? Math.round(current).toLocaleString()
+        : current.toFixed(decimals);
+
+      setDisplayValue(`${prefix}${formatted}${suffix}`);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setDisplayValue(value);
+      }
+    };
+
+    const animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, [value, duration]);
+
+  return <span>{displayValue}</span>;
+}
 
 interface UnifiedShowcaseViewProps {
   initialCharacterId?: number;

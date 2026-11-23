@@ -6,12 +6,14 @@ interface TiltCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   maxTilt?: number;
+  holographic?: boolean;
 }
 
 export default function TiltCard({
   children,
   className = "",
   maxTilt = 8,
+  holographic = false,
   ...props
 }: TiltCardProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -64,6 +66,18 @@ export default function TiltCard({
           background: `radial-gradient(circle at ${glint.x}% ${glint.y}%, rgba(255, 255, 255, 0.45), transparent 60%)`,
         }}
       />
+
+      {/* Feature 9: Holographic Foil Card Hover Shimmer on Artifacts */}
+      {holographic && (
+        <div
+          className="pointer-events-none absolute inset-0 z-20 rounded-[inherit] transition-opacity duration-300 overflow-hidden"
+          style={{
+            opacity: glint.opacity ? 0.35 : 0,
+            background: `linear-gradient(${115 + tilt.y * 3}deg, transparent 15%, rgba(255, 0, 128, 0.22) 30%, rgba(0, 230, 255, 0.25) 50%, rgba(255, 230, 0, 0.22) 70%, transparent 85%)`,
+            mixBlendMode: "color-dodge",
+          }}
+        />
+      )}
     </div>
   );
 }
