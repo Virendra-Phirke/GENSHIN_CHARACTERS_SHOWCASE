@@ -64,16 +64,27 @@
 }
 
 .dock--left {
-  position: fixed;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: fixed !important;
+  left: 8px !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  margin-top: auto !important;
+  margin-bottom: auto !important;
+  height: fit-content !important;
+  max-height: 88vh !important;
+  z-index: 300 !important;
   align-items: flex-start;
-  z-index: 300;
+  transform: none !important;
+}
+
+.dock--left[data-hidden] {
+  translate: calc(-100% - 16px) 0 !important;
+  opacity: 0 !important;
 }
 
 .dock--left:hover {
   translate: 0 0 !important;
+  opacity: 1 !important;
 }
 
 .dock--right {

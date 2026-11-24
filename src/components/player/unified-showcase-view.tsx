@@ -27,6 +27,7 @@ import ParallaxHeroArt from "@/components/ui/parallax-hero-art";
 import ShareBuildCardModal from "@/components/ui/share-build-card-modal";
 import CursorTrail from "@/components/ui/cursor-trail";
 import Dock from "@/components/Dock";
+import TechText from "@/components/TechText";
 
 // ---------------------------------------------------------------------------
 // FEATURE 5: Fluid Inertia Smooth Scroll with Dynamic Velocity Tilt
@@ -707,11 +708,25 @@ export default function UnifiedShowcaseView({
                 CHARACTER DOSSIER · LIVE IN-GAME BUILD
               </div>
 
-              <div className="character-title-row">
-                <h1 className="character-title">
-                  {activeCharacter.name}
-                  <span className="brand-period text-[#c8a96e]">.</span>
-                </h1>
+              <div className="character-title-row flex items-center justify-between gap-4">
+                <div className="h-[60px] sm:h-[76px] w-[320px] sm:w-[480px] max-w-full flex items-center">
+                  <TechText
+                    key={`tech-title-${activeCharacter.id}`}
+                    text={activeCharacter.name}
+                    fontSize={52}
+                    fontWeight={800}
+                    color="#f3f5f9"
+                    accentColor={elementTheme.accent}
+                    align="left"
+                    lineStyle="dashed"
+                    strokeWidth={1.5}
+                    sweep={true}
+                    clickKick={true}
+                    intro="sweep"
+                    introDuration={1.1}
+                    className="w-full h-full"
+                  />
+                </div>
                 <div className="character-rarity" aria-label={`${activeCharacter.rarity ?? 5} stars`}>
                   {"★".repeat(activeCharacter.rarity ?? 5)}
                 </div>
@@ -1262,7 +1277,7 @@ export default function UnifiedShowcaseView({
       {/* Feature 22: Interactive Fluid Cursor Trail (Stardust Wake) */}
       <CursorTrail elementAccent={elementTheme.accent} />
 
-      {/* Feature 19: React Bits Vertical macOS Magnification Dock on Left Edge (Hidden, Show on Hover) */}
+      {/* Feature 19: React Bits Vertical macOS Magnification Dock on Left Edge (Centered in Height, Hidden, Show on Hover) */}
       <Dock
         items={dockItems}
         position="left"
@@ -1272,7 +1287,7 @@ export default function UnifiedShowcaseView({
         panelHeight={64}
         gap={8}
         accentColor={elementTheme.accent}
-        className="!fixed !left-2 !top-1/2 !-translate-y-1/2 !z-[300] select-none"
+        className="!fixed !left-2 !top-0 !bottom-0 !my-auto !h-fit !z-[300] select-none"
       />
 
       {/* Showcase Footer */}
