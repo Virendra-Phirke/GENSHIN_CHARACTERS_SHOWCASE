@@ -275,6 +275,16 @@ export default function ShareBuildCardModal({
   const handleDownload = async () => {
     if (!cardRef.current) return;
     setDownloading(true);
+
+    // Suppress unsupported oklch console errors emitted by html2canvas
+    const origError = console.error;
+    console.error = (...args: unknown[]) => {
+      if (typeof args[0] === "string" && args[0].includes("oklch")) {
+        return;
+      }
+      origError.apply(console, args);
+    };
+
     try {
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(cardRef.current, {
@@ -288,8 +298,20 @@ export default function ShareBuildCardModal({
         scrollY: 0,
         windowWidth: cardRef.current.offsetWidth,
         windowHeight: cardRef.current.offsetHeight,
-        onclone: (clonedDoc) => {
-          const exportCard = clonedDoc.querySelector<HTMLElement>("[data-card-export-root]");
+        onclone: (clonedDoc: Document) => {
+          // Sanitize any remaining oklch references in cloned stylesheets
+          try {
+            const styleEls = clonedDoc.querySelectorAll("style");
+            styleEls.forEach((s) => {
+              if (s.textContent && s.textContent.includes("oklch")) {
+                s.textContent = s.textContent.replace(/oklch\([^)]+\)/g, "#ffffff");
+              }
+            });
+          } catch {
+            // ignore
+          }
+
+          const exportCard = clonedDoc.querySelector("[data-card-export-root]") as HTMLElement | null;
           if (exportCard) {
             exportCard.style.transform = "none";
             exportCard.style.position = "static";
@@ -347,6 +369,8 @@ export default function ShareBuildCardModal({
         console.error("Fallback download error:", fallbackErr);
       }
       setDownloading(false);
+    } finally {
+      console.error = origError;
     }
   };
 
@@ -550,9 +574,30 @@ export default function ShareBuildCardModal({
                     }}
                   >
                     <div className="flex items-baseline gap-2 leading-normal">
-                      <h1 className="text-2xl font-black text-white tracking-tight leading-normal">
-                        {character.name}
-                      </h1>
+                      <div className="flex items-center gap-2">
+                        {character.element && (
+                          <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 border"
+                            style={{
+                              background: "rgba(0,0,0,0.6)",
+                              borderColor: `${currentTheme.accentColor}50`,
+                              boxShadow: `0 0 8px ${currentTheme.accentColor}40`,
+                            }}
+                          >
+                            <Image
+                              src={`/images/elements/${character.element.toLowerCase()}.png`}
+                              alt={character.element}
+                              width={16}
+                              height={16}
+                              unoptimized
+                              className="w-4 h-4 object-contain"
+                            />
+                          </div>
+                        )}
+                        <h1 className="text-2xl font-black text-white tracking-tight leading-normal">
+                          {character.name}
+                        </h1>
+                      </div>
                       {showWatermark && (
                         <span className="text-xs font-mono font-medium" style={{ color: currentTheme.subtextColor }}>
                           {profile.nickname ?? "Traveler"}
@@ -768,11 +813,32 @@ export default function ShareBuildCardModal({
                     style={{ background: "rgba(5,7,12,0.85)" }}
                   >
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h1 className="text-xl font-bold text-white leading-tight">{character.name}</h1>
-                        <span className="text-[10px]" style={{ color: currentTheme.accentColor }}>
-                          Lv. {character.level ?? 90} / 90 · Friendship {character.friendship ?? 10}
-                        </span>
+                      <div className="flex items-center gap-2.5">
+                        {character.element && (
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 border"
+                            style={{
+                              background: "rgba(0,0,0,0.6)",
+                              borderColor: `${currentTheme.accentColor}50`,
+                              boxShadow: `0 0 10px ${currentTheme.accentColor}40`,
+                            }}
+                          >
+                            <Image
+                              src={`/images/elements/${character.element.toLowerCase()}.png`}
+                              alt={character.element}
+                              width={20}
+                              height={20}
+                              unoptimized
+                              className="w-5 h-5 object-contain"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <h1 className="text-xl font-bold text-white leading-tight">{character.name}</h1>
+                          <span className="text-[10px]" style={{ color: currentTheme.accentColor }}>
+                            Lv. {character.level ?? 90} / 90 · Friendship {character.friendship ?? 10}
+                          </span>
+                        </div>
                       </div>
                       <div className="text-right">
                         <span className="text-xs font-mono font-bold text-[#f5d070]">{character.critValue ?? 0} CV</span>

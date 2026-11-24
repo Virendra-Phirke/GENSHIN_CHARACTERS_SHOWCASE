@@ -265,9 +265,27 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
 
               {/* Identity Chips */}
               <div className="character-identity-chips">
-                <span className="element-chip">
-                  <i />
-                  {character.element || "Adventurer"}
+                <span
+                  className="element-chip !py-1 !px-2 flex items-center justify-center transition-all hover:scale-105"
+                  title={`${character.element || "Adventurer"} Element`}
+                  style={{
+                    borderColor: elementTheme.accent,
+                    backgroundColor: elementTheme.wash,
+                    boxShadow: `0 0 12px ${elementTheme.accent}35`,
+                  }}
+                >
+                  {character.element ? (
+                    <Image
+                      src={`/images/elements/${character.element.toLowerCase()}.png`}
+                      alt={character.element}
+                      width={22}
+                      height={22}
+                      unoptimized
+                      className="w-5 h-5 object-contain drop-shadow"
+                    />
+                  ) : (
+                    <span style={{ color: elementTheme.accent }}>✦</span>
+                  )}
                 </span>
                 <span className="level-chip">
                   LEVEL {character.level ?? "—"} / 90

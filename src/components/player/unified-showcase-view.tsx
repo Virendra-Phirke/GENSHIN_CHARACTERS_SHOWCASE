@@ -583,15 +583,26 @@ export default function UnifiedShowcaseView({
               {/* Identity Chips */}
               <div className="character-identity-chips">
                 <span
-                  className="element-chip"
+                  className="element-chip !py-1 !px-2 flex items-center justify-center transition-all hover:scale-105"
+                  title={`${activeCharacter.element || "Adventurer"} Element`}
                   style={{
                     borderColor: elementTheme.accent,
                     backgroundColor: elementTheme.wash,
-                    color: elementTheme.accent,
+                    boxShadow: `0 0 12px ${elementTheme.accent}35`,
                   }}
                 >
-                  <i style={{ backgroundColor: elementTheme.accent }} />
-                  {activeCharacter.element || "Adventurer"}
+                  {activeCharacter.element ? (
+                    <Image
+                      src={`/images/elements/${activeCharacter.element.toLowerCase()}.png`}
+                      alt={activeCharacter.element}
+                      width={22}
+                      height={22}
+                      unoptimized
+                      className="w-5 h-5 object-contain drop-shadow"
+                    />
+                  ) : (
+                    <span style={{ color: elementTheme.accent }}>✦</span>
+                  )}
                 </span>
                 <span className="level-chip">
                   LEVEL {activeCharacter.level ?? 90} / 90
