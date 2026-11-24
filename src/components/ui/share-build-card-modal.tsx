@@ -9,13 +9,8 @@ import {
   Check,
   X,
   Camera,
-  Sparkles,
-  Layers,
   Smartphone,
   Monitor,
-  Sliders,
-  Shield,
-  Star,
 } from "lucide-react";
 import type { ShowcaseCharacter, PlayerShowcase, ShowcaseArtifact } from "@/lib/types";
 
@@ -99,6 +94,13 @@ function getRarityStars(rarity = 5) {
   return "★".repeat(Math.min(Math.max(rarity, 1), 5));
 }
 
+// Convert external image URL to same-origin proxy to prevent canvas tainting
+function toProxyUrl(url?: string): string {
+  if (!url) return "";
+  if (url.startsWith("/") || url.startsWith("data:")) return url;
+  return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+}
+
 // Single artifact tile component for the card
 function CardArtifactItem({
   artifact,
@@ -111,6 +113,7 @@ function CardArtifactItem({
 }) {
   const mainVal = artifact.mainStat?.value ?? "—";
   const cv = artifact.critValue ?? 0;
+  const iconSrc = toProxyUrl(artifact.icon || artifact.iconFallback || "");
 
   return (
     <div
@@ -126,9 +129,9 @@ function CardArtifactItem({
         className="relative shrink-0 w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden"
         style={{ background: "rgba(0,0,0,0.45)" }}
       >
-        {artifact.icon || artifact.iconFallback ? (
+        {iconSrc ? (
           <Image
-            src={artifact.icon || artifact.iconFallback || ""}
+            src={iconSrc}
             alt={artifact.name ?? artifact.slot}
             fill
             unoptimized
@@ -246,8 +249,8 @@ export default function ShareBuildCardModal({
   if (!isOpen || !mounted) return null;
 
   const currentTheme = THEMES[themeKey];
-  const splashSrc = character.image || character.imageFallback || "";
-  const weaponIcon = character.weapon?.icon || character.weapon?.iconFallback;
+  const splashSrc = toProxyUrl(character.image || character.imageFallback || "");
+  const weaponIcon = toProxyUrl(character.weapon?.icon || character.weapon?.iconFallback);
 
   const getStat = (label: string) => character.stats.find((s) => s.label === label)?.value ?? "—";
 
@@ -286,25 +289,58 @@ export default function ShareBuildCardModal({
       const canvas = await html2canvas(cardRef.current, {
         scale: quality,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: null,
         logging: false,
+        imageTimeout: 15000,
       } as Parameters<typeof html2canvas>[1]);
 
-      canvas.toBlob((blob: Blob | null) => {
-        if (!blob) {
-          setDownloading(false);
-          return;
-        }
-        const url = URL.createObjectURL(blob);
+      const filename = `${character.name.toLowerCase().replace(/\s+/g, "_")}_${themeKey}_${layout}_UID${profile.uid}.png`;
+
+      const triggerDownload = (dataUrl: string) => {
         const a = document.createElement("a");
-        a.href = url;
-        a.download = `${character.name.toLowerCase().replace(/\s+/g, "_")}_${themeKey}_${layout}_UID${profile.uid}.png`;
+        a.href = dataUrl;
+        a.download = filename;
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
         setDownloading(false);
-      }, "image/png");
-    } catch {
+      };
+
+      if (canvas.toBlob) {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            triggerDownload(url);
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+          } else {
+            triggerDownload(canvas.toDataURL("image/png"));
+          }
+        }, "image/png");
+      } else {
+        triggerDownload(canvas.toDataURL("image/png"));
+      }
+    } catch (err) {
+      console.error("Poster download error:", err);
+      // Fallback
+      try {
+        const html2canvas = (await import("html2canvas")).default;
+        const canvas = await html2canvas(cardRef.current, {
+          scale: 2,
+          useCORS: false,
+          allowTaint: true,
+          backgroundColor: "#07090e",
+        } as Parameters<typeof html2canvas>[1]);
+        const dataUrl = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = `build_poster_UID${profile.uid}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch (fallbackErr) {
+        console.error("Fallback download error:", fallbackErr);
+      }
       setDownloading(false);
     }
   };
@@ -541,26 +577,29 @@ export default function ShareBuildCardModal({
 
                   {/* Constellation Nodes Column (C1-C6) on the left side */}
                   <div className="absolute left-2.5 top-4 flex flex-col gap-1.5 z-20">
-                    {(character.constellations ?? []).slice(0, 6).map((c, i) => (
-                      <div
-                        key={i}
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border backdrop-blur-md transition-all"
-                        style={{
-                          background: c.unlocked ? `${currentTheme.accentColor}35` : "rgba(0,0,0,0.55)",
-                          borderColor: c.unlocked ? currentTheme.accentColor : "rgba(255,255,255,0.12)",
-                          color: c.unlocked ? "#ffffff" : "#566273",
-                          boxShadow: c.unlocked ? `0 0 10px ${currentTheme.accentColor}60` : undefined,
-                        }}
-                      >
-                        {c.icon ? (
-                          <div className="relative w-4 h-4 rounded-full overflow-hidden">
-                            <Image src={c.icon} alt={`C${i+1}`} fill unoptimized sizes="16px" className="object-contain" />
-                          </div>
-                        ) : (
-                          `C${i + 1}`
-                        )}
-                      </div>
-                    ))}
+                    {(character.constellations ?? []).slice(0, 6).map((c, i) => {
+                      const cIcon = toProxyUrl(c.icon);
+                      return (
+                        <div
+                          key={i}
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border backdrop-blur-md transition-all"
+                          style={{
+                            background: c.unlocked ? `${currentTheme.accentColor}35` : "rgba(0,0,0,0.55)",
+                            borderColor: c.unlocked ? currentTheme.accentColor : "rgba(255,255,255,0.12)",
+                            color: c.unlocked ? "#ffffff" : "#566273",
+                            boxShadow: c.unlocked ? `0 0 10px ${currentTheme.accentColor}60` : undefined,
+                          }}
+                        >
+                          {cIcon ? (
+                            <div className="relative w-4 h-4 rounded-full overflow-hidden">
+                              <Image src={cIcon} alt={`C${i+1}`} fill unoptimized sizes="16px" className="object-contain" />
+                            </div>
+                          ) : (
+                            `C${i + 1}`
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 

@@ -863,9 +863,17 @@ export default function UnifiedShowcaseView({
                         <span
                           className={`set-bonus-chip cursor-pointer transition-all duration-200 ${
                             isHovered
-                              ? "ring-2 ring-[#c8a96e] bg-[#c8a96e]/30 text-[#f7e6ca] shadow-[0_0_14px_rgba(200,169,110,0.55)] scale-105"
+                              ? "scale-105"
                               : "hover:bg-white/10"
                           }`}
+                          style={{
+                            border: isHovered
+                              ? `1px solid ${elementTheme.accent}`
+                              : "1px solid rgba(255, 255, 255, 0.12)",
+                            color: isHovered ? elementTheme.accent : "#e4cda1",
+                            backgroundColor: isHovered ? `${elementTheme.accent}20` : "rgba(200, 169, 110, 0.09)",
+                            boxShadow: isHovered ? `0 0 10px ${elementTheme.accent}35` : undefined,
+                          }}
                           key={bonus.setName}
                           onMouseEnter={() => setHoveredSetBonus(bonus.setName)}
                           onMouseLeave={() => setHoveredSetBonus(null)}
@@ -879,22 +887,33 @@ export default function UnifiedShowcaseView({
 
                 {/* Feature 7: Artifact Set Resonance Flow Conduit Banner */}
                 {activeSetBonuses.length > 0 && (
-                  <div className="mb-3 px-3 py-1.5 rounded-lg bg-[#c8a96e]/10 border border-[#c8a96e]/30 flex items-center justify-between text-[10px] text-[#f2e2be]">
+                  <div
+                    className="mb-3 px-3 py-1.5 rounded-lg border flex items-center justify-between text-[10px]"
+                    style={{
+                      backgroundColor: `${elementTheme.accent}12`,
+                      borderColor: `${elementTheme.accent}35`,
+                      color: "#f2e2be",
+                    }}
+                  >
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#c8a96e] animate-ping" />
+                      <span
+                        className="w-1.5 h-1.5 rounded-full animate-ping"
+                        style={{ backgroundColor: elementTheme.accent }}
+                      />
                       <span className="font-mono font-bold uppercase tracking-wider">
                         Set Resonance Conduit: {activeSetBonuses.map((b) => `${b.count}pc ${b.setName}`).join(" · ")}
                       </span>
                     </div>
-                    <span className="text-[9px] text-[#c8a96e] font-mono">⚡ CIRCUIT ACTIVE</span>
+                    <span className="text-[9px] font-mono font-bold" style={{ color: elementTheme.accent }}>
+                      ⚡ CIRCUIT ACTIVE
+                    </span>
                   </div>
                 )}
 
                 <div className="artifact-build-list">
                   {activeCharacter.artifacts.map((artifact, index) => {
                     const isSetResonant = Boolean(
-                      (hoveredSetBonus && artifact.setName === hoveredSetBonus) ||
-                      activeSetBonuses.some((b) => b.setName === artifact.setName && b.count >= 2)
+                      hoveredSetBonus && artifact.setName && artifact.setName === hoveredSetBonus
                     );
 
                     return (
@@ -904,11 +923,15 @@ export default function UnifiedShowcaseView({
                         key={`${artifact.slot}-${index}`}
                         onMouseEnter={() => artifact.setName && setHoveredSetBonus(artifact.setName)}
                         onMouseLeave={() => setHoveredSetBonus(null)}
-                        className={`transition-all duration-300 rounded-xl ${
-                          isSetResonant
-                            ? "ring-2 ring-[#c8a96e] shadow-[0_0_24px_rgba(200,169,110,0.5)] scale-[1.02]"
-                            : ""
-                        }`}
+                        className="transition-all duration-200 rounded-xl"
+                        style={{
+                          border: isSetResonant
+                            ? `1px solid ${elementTheme.accent}`
+                            : "1px solid rgba(255, 255, 255, 0.08)",
+                          boxShadow: isSetResonant
+                            ? `0 0 12px ${elementTheme.accent}40`
+                            : undefined,
+                        }}
                       >
                         <article className="artifact-build-item h-full flex flex-col justify-between">
                           <div>
