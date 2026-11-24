@@ -117,17 +117,16 @@ function CardArtifactItem({
 
   return (
     <div
-      className="relative flex items-center gap-2 p-2 rounded-xl transition-all"
+      className="relative flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl"
       style={{
         background: theme.cardBg,
         border: `1px solid ${theme.borderColor}`,
-        backdropFilter: "blur(8px)",
       }}
     >
       {/* Icon & Level */}
       <div
-        className="relative shrink-0 w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden"
-        style={{ background: "rgba(0,0,0,0.45)" }}
+        className="relative shrink-0 w-11 h-11 rounded-lg flex items-center justify-center overflow-hidden"
+        style={{ background: "rgba(0,0,0,0.5)" }}
       >
         {iconSrc ? (
           <Image
@@ -135,29 +134,29 @@ function CardArtifactItem({
             alt={artifact.name ?? artifact.slot}
             fill
             unoptimized
-            sizes="48px"
+            sizes="44px"
             className="object-contain p-0.5"
           />
         ) : (
           <span className="text-sm opacity-50">✦</span>
         )}
         <div
-          className="absolute bottom-0 inset-x-0 text-center text-[8px] font-bold py-0.2"
-          style={{ background: "rgba(0,0,0,0.75)", color: theme.accentColor }}
+          className="absolute bottom-0 inset-x-0 text-center text-[8px] font-bold font-mono py-0.2 leading-normal"
+          style={{ background: "rgba(0,0,0,0.85)", color: theme.accentColor }}
         >
           +{artifact.level ?? 0}
         </div>
       </div>
 
-      {/* Main Stat & Name */}
-      <div className="flex-1 min-w-0 pr-1">
-        <div className="flex items-center justify-between gap-1">
-          <span className="text-[9px] font-bold uppercase truncate" style={{ color: theme.accentColor }}>
+      {/* Main Stat & Substats (NO truncate, generous line-height) */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-1 leading-normal">
+          <span className="text-[10px] font-extrabold uppercase tracking-wide leading-normal" style={{ color: theme.accentColor }}>
             {artifact.slot}
           </span>
           {cv > 0 && showPips && (
             <span
-              className="text-[8px] font-mono font-bold px-1 rounded"
+              className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded leading-normal"
               style={{
                 color: theme.accentColor,
                 backgroundColor: theme.badgeBg,
@@ -168,20 +167,22 @@ function CardArtifactItem({
             </span>
           )}
         </div>
-        <div className="text-[11px] font-bold text-white truncate leading-tight mt-0.5">
-          {artifact.mainStat?.label ?? "Main Stat"}: <span style={{ color: theme.accentColor }}>{mainVal}</span>
+
+        <div className="text-[11px] font-bold text-white leading-normal my-0.5">
+          <span className="text-slate-300 font-medium">{artifact.mainStat?.label ?? "Main Stat"}: </span>
+          <span className="font-mono font-extrabold" style={{ color: theme.accentColor }}>{mainVal}</span>
         </div>
 
         {/* 4 Substats */}
-        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1 text-[9px] leading-tight">
+        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9px] leading-normal font-mono">
           {artifact.substats.slice(0, 4).map((sub, i) => {
             const isCrit = sub.label.includes("CRIT");
             return (
-              <div key={i} className="flex items-center justify-between gap-0.5 truncate">
-                <span className="truncate" style={{ color: isCrit ? theme.accentColor : theme.subtextColor }}>
+              <div key={i} className="flex items-center justify-between gap-1 leading-normal">
+                <span style={{ color: isCrit ? theme.accentColor : theme.subtextColor }}>
                   {sub.label.replace("CRIT ", "").replace("Energy Recharge", "ER").replace("Elemental Mastery", "EM")}
                 </span>
-                <span className="font-mono font-semibold" style={{ color: isCrit ? "#ffffff" : theme.textColor }}>
+                <span className="font-semibold" style={{ color: isCrit ? "#ffffff" : theme.textColor }}>
                   +{sub.value}
                 </span>
               </div>
@@ -283,6 +284,18 @@ export default function ShareBuildCardModal({
         backgroundColor: null,
         logging: false,
         imageTimeout: 15000,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: cardRef.current.offsetWidth,
+        windowHeight: cardRef.current.offsetHeight,
+        onclone: (clonedDoc) => {
+          const exportCard = clonedDoc.querySelector<HTMLElement>("[data-card-export-root]");
+          if (exportCard) {
+            exportCard.style.transform = "none";
+            exportCard.style.position = "static";
+            exportCard.style.margin = "0";
+          }
+        },
       } as Parameters<typeof html2canvas>[1]);
 
       const filename = `${character.name.toLowerCase().replace(/\s+/g, "_")}_${themeKey}_${layout}_UID${profile.uid}.png`;
@@ -302,7 +315,7 @@ export default function ShareBuildCardModal({
           if (blob) {
             const url = URL.createObjectURL(blob);
             triggerDownload(url);
-            setTimeout(() => URL.revokeObjectURL(url), 2000);
+            setTimeout(() => URL.revokeObjectURL(url), 3000);
           } else {
             triggerDownload(canvas.toDataURL("image/png"));
           }
@@ -320,6 +333,8 @@ export default function ShareBuildCardModal({
           useCORS: false,
           allowTaint: true,
           backgroundColor: "#07090e",
+          scrollX: 0,
+          scrollY: 0,
         } as Parameters<typeof html2canvas>[1]);
         const dataUrl = canvas.toDataURL("image/png");
         const a = document.createElement("a");
@@ -474,10 +489,11 @@ export default function ShareBuildCardModal({
           {/* The Actual Exported DOM Node */}
           <div
             ref={cardRef}
-            className={`relative rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ${
+            data-card-export-root="true"
+            className={`relative rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 shrink-0 ${
               layout === "landscape"
-                ? "w-[980px] min-h-[460px] flex flex-col justify-between"
-                : "w-[540px] min-h-[760px] flex flex-col justify-between"
+                ? "w-[1060px] h-[610px] flex flex-col justify-between"
+                : "w-[540px] h-[920px] flex flex-col justify-between"
             }`}
             style={{
               background: currentTheme.bgGradient,
@@ -508,7 +524,7 @@ export default function ShareBuildCardModal({
                 <div
                   className="relative shrink-0 overflow-hidden flex flex-col justify-end"
                   style={{
-                    width: "300px",
+                    width: "340px",
                     background: `radial-gradient(ellipse at 50% 65%, ${currentTheme.accentColor}15, transparent 70%)`,
                   }}
                 >
@@ -518,9 +534,9 @@ export default function ShareBuildCardModal({
                       alt={character.name}
                       fill
                       unoptimized
-                      sizes="300px"
+                      sizes="340px"
                       className="object-cover object-top"
-                      style={{ objectPosition: "center 8%" }}
+                      style={{ objectPosition: "center 12%" }}
                     />
                   ) : (
                     <div className="w-full h-full grid place-items-center text-4xl opacity-20">✦</div>
@@ -528,56 +544,56 @@ export default function ShareBuildCardModal({
 
                   {/* Character Identity Bottom Card Gradient */}
                   <div
-                    className="relative z-10 p-4"
+                    className="relative z-10 p-4 pb-3"
                     style={{
-                      background: "linear-gradient(to top, rgba(4,6,10,0.96) 0%, rgba(4,6,10,0.7) 60%, transparent 100%)",
+                      background: "linear-gradient(to top, rgba(4,6,10,0.98) 0%, rgba(4,6,10,0.8) 55%, transparent 100%)",
                     }}
                   >
-                    <div className="flex items-baseline gap-2">
-                      <h1 className="text-xl font-bold text-white tracking-tight leading-none">
+                    <div className="flex items-baseline gap-2 leading-normal">
+                      <h1 className="text-2xl font-black text-white tracking-tight leading-normal">
                         {character.name}
                       </h1>
                       {showWatermark && (
-                        <span className="text-[10px] font-mono" style={{ color: currentTheme.subtextColor }}>
+                        <span className="text-xs font-mono font-medium" style={{ color: currentTheme.subtextColor }}>
                           {profile.nickname ?? "Traveler"}
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 leading-normal">
                       <span className="text-xs font-bold font-mono" style={{ color: currentTheme.accentColor }}>
                         Lv. {character.level ?? 90} / 90
                       </span>
-                      <span className="text-[10px]" style={{ color: currentTheme.subtextColor }}>
+                      <span className="text-xs" style={{ color: currentTheme.subtextColor }}>
                         ✦ Friendship {character.friendship ?? 10}
                       </span>
                     </div>
 
                     {showWatermark && (
-                      <div className="text-[9px] font-mono text-[#627083] mt-1 tracking-wider">
+                      <div className="text-[10px] font-mono text-[#7a8a9e] mt-1.5 tracking-wider font-semibold leading-normal">
                         UID: {profile.uid}
                       </div>
                     )}
                   </div>
 
                   {/* Constellation Nodes Column (C1-C6) on the left side */}
-                  <div className="absolute left-2.5 top-4 flex flex-col gap-1.5 z-20">
+                  <div className="absolute left-3 top-4 flex flex-col gap-2 z-20">
                     {(character.constellations ?? []).slice(0, 6).map((c, i) => {
                       const cIcon = toProxyUrl(c.icon);
                       return (
                         <div
                           key={i}
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border backdrop-blur-md transition-all"
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border backdrop-blur-md transition-all"
                           style={{
-                            background: c.unlocked ? `${currentTheme.accentColor}35` : "rgba(0,0,0,0.55)",
-                            borderColor: c.unlocked ? currentTheme.accentColor : "rgba(255,255,255,0.12)",
-                            color: c.unlocked ? "#ffffff" : "#566273",
+                            background: c.unlocked ? `${currentTheme.accentColor}35` : "rgba(0,0,0,0.65)",
+                            borderColor: c.unlocked ? currentTheme.accentColor : "rgba(255,255,255,0.15)",
+                            color: c.unlocked ? "#ffffff" : "#6b788a",
                             boxShadow: c.unlocked ? `0 0 10px ${currentTheme.accentColor}60` : undefined,
                           }}
                         >
                           {cIcon ? (
-                            <div className="relative w-4 h-4 rounded-full overflow-hidden">
-                              <Image src={cIcon} alt={`C${i+1}`} fill unoptimized sizes="16px" className="object-contain" />
+                            <div className="relative w-4.5 h-4.5 rounded-full overflow-hidden">
+                              <Image src={cIcon} alt={`C${i+1}`} fill unoptimized sizes="18px" className="object-contain" />
                             </div>
                           ) : (
                             `C${i + 1}`
@@ -594,7 +610,7 @@ export default function ShareBuildCardModal({
                   style={{
                     borderLeft: `1px solid ${currentTheme.borderColor}`,
                     borderRight: `1px solid ${currentTheme.borderColor}`,
-                    background: "rgba(0,0,0,0.15)",
+                    background: "rgba(0,0,0,0.18)",
                   }}
                 >
                   {/* Equipped Weapon Block */}
@@ -608,7 +624,7 @@ export default function ShareBuildCardModal({
                     >
                       <div
                         className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden flex items-center justify-center"
-                        style={{ background: "rgba(0,0,0,0.4)" }}
+                        style={{ background: "rgba(0,0,0,0.5)" }}
                       >
                         {weaponIcon ? (
                           <Image src={weaponIcon} alt={character.weapon.name ?? "Weapon"} fill unoptimized sizes="48px" className="object-contain p-1" />
@@ -617,18 +633,18 @@ export default function ShareBuildCardModal({
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="text-xs font-bold text-white truncate">
+                        <div className="flex items-center justify-between gap-1 leading-normal">
+                          <span className="text-sm font-extrabold text-white leading-normal">
                             {character.weapon.name}
                           </span>
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded font-mono" style={{ background: currentTheme.badgeBg, color: currentTheme.accentColor }}>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded font-mono leading-normal" style={{ background: currentTheme.badgeBg, color: currentTheme.accentColor }}>
                             R{character.weapon.refinement ?? 1}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1 text-[8px] text-[#f4c43a] leading-none mt-0.5">
+                        <div className="flex items-center gap-1 text-[9px] text-[#f4c43a] leading-normal mt-0.5">
                           {getRarityStars(character.weapon.rarity ?? 5)}
                         </div>
-                        <div className="flex items-center justify-between text-[10px] mt-1 font-mono">
+                        <div className="flex items-center justify-between text-xs mt-1 font-mono leading-normal">
                           <span style={{ color: currentTheme.subtextColor }}>
                             Base ATK <strong className="text-white font-sans">{character.weapon.baseAttack}</strong>
                           </span>
@@ -643,19 +659,19 @@ export default function ShareBuildCardModal({
                   )}
 
                   {/* 7 Core Combat Stats List */}
-                  <div className="space-y-1.5 my-2">
+                  <div className="space-y-1 my-auto">
                     {statsList.map((stat, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center justify-between px-2.5 py-1 rounded-lg text-xs"
-                        style={{ background: "rgba(255,255,255,0.02)" }}
+                        className="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs leading-normal"
+                        style={{ background: "rgba(255,255,255,0.025)" }}
                       >
                         <span className="flex items-center gap-2" style={{ color: currentTheme.subtextColor }}>
                           <span className="w-3 text-center opacity-70 text-[10px]">{stat.icon}</span>
-                          <span className="text-[11px] font-medium">{stat.label}</span>
+                          <span className="text-xs font-medium leading-normal">{stat.label}</span>
                         </span>
                         <strong
-                          className="font-mono text-xs font-bold"
+                          className="font-mono text-xs font-bold leading-normal"
                           style={{ color: stat.isCrit ? "#f8e3c2" : currentTheme.textColor }}
                         >
                           {stat.val}
@@ -666,7 +682,7 @@ export default function ShareBuildCardModal({
 
                   {/* Total CV & Set Bonus Pill */}
                   <div
-                    className="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-mono"
+                    className="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-mono leading-normal"
                     style={{
                       background: currentTheme.badgeBg,
                       border: `1px solid ${currentTheme.borderColor}`,
@@ -674,18 +690,18 @@ export default function ShareBuildCardModal({
                     }}
                   >
                     <span className="font-bold">★ BUILD CRIT VALUE:</span>
-                    <strong className="text-white text-sm">{character.critValue ?? "0.0"} CV</strong>
+                    <strong className="text-white text-base font-extrabold">{character.critValue ?? "0.0"} CV</strong>
                   </div>
                 </div>
 
                 {/* Column 3: 5 Equipped Artifacts Stack */}
-                <div className="w-[340px] p-3 flex flex-col justify-between gap-1.5">
-                  <div className="text-[10px] font-mono font-bold tracking-wider uppercase px-1 flex items-center justify-between" style={{ color: currentTheme.accentColor }}>
+                <div className="w-[370px] shrink-0 p-3.5 flex flex-col justify-between">
+                  <div className="text-[11px] font-mono font-bold tracking-wider uppercase px-1 flex items-center justify-between pb-1 leading-normal" style={{ color: currentTheme.accentColor }}>
                     <span>EQUIPPED ARTIFACT SETS</span>
-                    <span className="text-[9px] text-[#718096]">5/5 PIECES</span>
+                    <span className="text-[10px] text-[#8a9bb2]">5/5 PIECES</span>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 flex-1 flex flex-col justify-between">
                     {character.artifacts.slice(0, 5).map((art, idx) => (
                       <CardArtifactItem
                         key={idx}
@@ -699,9 +715,9 @@ export default function ShareBuildCardModal({
                   {/* Set bonus tag at bottom */}
                   {character.artifacts[0]?.setName && (
                     <div
-                      className="text-center text-[10px] font-mono font-bold py-1 px-2 rounded-lg truncate"
+                      className="text-center text-xs font-mono font-bold py-1.5 px-3 rounded-xl mt-1.5 leading-normal"
                       style={{
-                        background: "rgba(0,0,0,0.4)",
+                        background: "rgba(0,0,0,0.5)",
                         color: currentTheme.accentColor,
                         border: `1px solid ${currentTheme.borderColor}`,
                       }}
@@ -780,8 +796,8 @@ export default function ShareBuildCardModal({
                         {weaponIcon && <Image src={weaponIcon} alt="Weapon" fill unoptimized sizes="40px" className="object-contain p-0.5" />}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="text-[11px] font-bold text-white truncate">{character.weapon.name}</div>
-                        <div className="text-[9px] font-mono" style={{ color: currentTheme.accentColor }}>
+                        <div className="text-[11px] font-bold text-white leading-normal">{character.weapon.name}</div>
+                        <div className="text-[9px] font-mono leading-normal" style={{ color: currentTheme.accentColor }}>
                           R{character.weapon.refinement ?? 1} · Lv. {character.weapon.level ?? 90}
                         </div>
                       </div>
@@ -793,8 +809,8 @@ export default function ShareBuildCardModal({
                     className="p-2.5 rounded-xl flex flex-col justify-center text-center"
                     style={{ background: currentTheme.cardBg, border: `1px solid ${currentTheme.borderColor}` }}
                   >
-                    <span className="text-[9px] font-mono" style={{ color: currentTheme.subtextColor }}>ACTIVE SET</span>
-                    <strong className="text-[11px] font-bold text-white truncate" style={{ color: currentTheme.accentColor }}>
+                    <span className="text-[9px] font-mono leading-normal" style={{ color: currentTheme.subtextColor }}>ACTIVE SET</span>
+                    <strong className="text-[11px] font-bold text-white leading-normal" style={{ color: currentTheme.accentColor }}>
                       {character.artifacts[0]?.setName ?? "4-Piece Set"}
                     </strong>
                   </div>
