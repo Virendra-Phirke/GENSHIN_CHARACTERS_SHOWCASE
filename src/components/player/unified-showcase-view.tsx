@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import {
   Camera,
   Crown,
@@ -25,6 +25,8 @@ import ConstellationStarMap from "@/components/ui/constellation-star-map";
 import ArtifactRollInspector from "@/components/ui/artifact-roll-inspector";
 import ParallaxHeroArt from "@/components/ui/parallax-hero-art";
 import ShareBuildCardModal from "@/components/ui/share-build-card-modal";
+import CursorTrail from "@/components/ui/cursor-trail";
+import Dock from "@/components/Dock";
 
 // ---------------------------------------------------------------------------
 // FEATURE 5: Fluid Inertia Smooth Scroll with Dynamic Velocity Tilt
@@ -248,6 +250,59 @@ export default function UnifiedShowcaseView({
   const [shareModalOpen, setShareModalOpen] = useState(false); // Feature 20
   const [isResonanceActive, setIsResonanceActive] = useState(false); // Feature 15
   const [hoveredSetBonus, setHoveredSetBonus] = useState<string | null>(null); // Feature 10
+
+  // #1: Wish Summon Starburst Dissolve — character switch transition
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [prevElement, setPrevElement] = useState<string>("");
+  const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Character Dock items for React Bits Dock (macOS-style magnification dock on left)
+  const dockItems = useMemo(() => {
+    if (!profile?.characters) return [];
+    return profile.characters.map((char) => {
+      const isActive = char.id === activeCharacter?.id;
+      const accent = (char.element && ELEMENT_DATA[char.element]?.accent) || "#c8a96e";
+      const avatarSrc = char.image || char.imageFallback;
+
+      return {
+        label: `${char.name} · Lv. ${char.level || 90}`,
+        active: isActive,
+        onClick: () => {
+          if (char.id === activeCharacter?.id) return;
+          setPrevElement(activeCharacter?.element ?? "");
+          setIsTransitioning(true);
+          if (transitionTimer.current) clearTimeout(transitionTimer.current);
+          transitionTimer.current = setTimeout(() => {
+            setActiveCharacter(char);
+            setFailedSplash(null);
+            setIsTransitioning(false);
+          }, 350);
+        },
+        icon: (
+          <div className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center p-0.5">
+            {avatarSrc ? (
+              <Image
+                src={
+                  avatarSrc.startsWith("http")
+                    ? `/api/proxy-image?url=${encodeURIComponent(avatarSrc)}`
+                    : avatarSrc
+                }
+                alt={char.name}
+                fill
+                unoptimized
+                sizes="48px"
+                className="object-cover object-top rounded-full"
+              />
+            ) : (
+              <span className="text-xs font-bold" style={{ color: accent }}>
+                {char.name.slice(0, 1)}
+              </span>
+            )}
+          </div>
+        ),
+      };
+    });
+  }, [profile?.characters, activeCharacter?.id]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -480,11 +535,22 @@ export default function UnifiedShowcaseView({
       {/* Dynamic Celestial Stardust Canvas */}
       <CelestialBackground elementAccent={elementTheme.accent} element={activeCharacter.element} />
 
-      {/* Top Ambient Elemental Aurora */}
+      {/* #2: Liquid Elemental Ink Morph — dual aurora cross-fade */}
       <div
-        className="pointer-events-none fixed inset-x-0 top-0 h-[480px] opacity-25 blur-[120px] transition-colors duration-1000"
+        className="pointer-events-none fixed inset-x-0 top-0 h-[480px] opacity-25 blur-[120px]"
         style={{
           background: `radial-gradient(circle at 50% 0%, ${elementTheme.accent}, transparent 75%)`,
+          transition: "background 1200ms cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      />
+      {/* Ink turbulence layer */}
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 h-[520px] opacity-10"
+        style={{
+          background: `radial-gradient(ellipse at 30% 0%, ${elementTheme.accent}88, transparent 50%), radial-gradient(ellipse at 70% 0%, ${elementTheme.glow}, transparent 50%)`,
+          transition: "background 1600ms cubic-bezier(0.25, 0, 0, 1)",
+          filter: "blur(40px)",
+          animation: "auroraWave 8s ease-in-out infinite alternate",
         }}
       />
 
@@ -536,8 +602,16 @@ export default function UnifiedShowcaseView({
             characters={profile.characters}
             activeCharacterId={activeCharacter.id}
             onSelectCharacter={(char) => {
-              setActiveCharacter(char);
-              setFailedSplash(null);
+              if (char.id === activeCharacter?.id) return;
+              // #1: Starburst dissolve transition
+              setPrevElement(activeCharacter?.element ?? "");
+              setIsTransitioning(true);
+              if (transitionTimer.current) clearTimeout(transitionTimer.current);
+              transitionTimer.current = setTimeout(() => {
+                setActiveCharacter(char);
+                setFailedSplash(null);
+                setIsTransitioning(false);
+              }, 350);
             }}
           />
         </section>
@@ -545,7 +619,49 @@ export default function UnifiedShowcaseView({
         {/* =========================================================================
             SECTION 2: FEATURED CHARACTER DOSSIER (Pure Borderless Splash Art + Bento)
            ========================================================================= */}
-        <div key={activeCharacter.id} id="section-dossier" className="dossier-animate-entry mt-6">
+        {/* #1: Starburst Dissolve Overlay */}
+        {isTransitioning && (
+          <div
+            className="pointer-events-none fixed inset-0 z-[300] flex items-center justify-center"
+            aria-hidden="true"
+          >
+            {/* Radial starburst */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(circle at 50% 50%, ${
+                  ELEMENT_DATA[prevElement]?.accent ?? "#c8a96e"
+                }33, transparent 60%)`,
+                animation: "starburstOut 350ms ease-out forwards",
+              }}
+            />
+            {/* Comet streak */}
+            <div
+              className="absolute w-[200vw] h-[1px] origin-center"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${
+                  ELEMENT_DATA[prevElement]?.accent ?? "#c8a96e"
+                }cc, transparent)`,
+                transform: "rotate(-25deg)",
+                animation: "cometStreak 350ms ease-out forwards",
+              }}
+            />
+          </div>
+        )}
+
+        <div
+          key={activeCharacter.id}
+          id="section-dossier"
+          className="dossier-animate-entry mt-6"
+          style={{
+            opacity: isTransitioning ? 0 : 1,
+            transform: isTransitioning ? "scale(0.97) blur(4px)" : "scale(1)",
+            filter: isTransitioning ? "blur(4px)" : "none",
+            transition: isTransitioning
+              ? "none"
+              : "opacity 400ms ease-out, transform 400ms cubic-bezier(0.34,1.56,0.64,1), filter 400ms ease-out",
+          }}
+        >
           {/* Hero Banner: Borderless Centered Splash Art + Metadata */}
           <section className="character-build-hero">
             {/* Feature 1, 2, 3: Mouse-Driven 3D Parallax, Disintegration Burst, Fullscreen Spotlight */}
@@ -560,7 +676,33 @@ export default function UnifiedShowcaseView({
 
             {/* Right: Identity, Constellations, Lore, and Quick Summary Bento */}
             <div className="character-build-intro">
-              <div className="eyebrow flex items-center gap-2 text-[9px] font-bold tracking-[0.22em] text-[#c8a96e]">
+              {/* #4: Archon Burst Glyph Shimmer — SVG glyph expands on character entry */}
+              <div className="relative">
+                <div
+                  key={`glyph-${activeCharacter.id}`}
+                  className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-visible"
+                  aria-hidden="true"
+                  style={{ zIndex: 0 }}
+                >
+                  <svg width="0" height="0" className="absolute">
+                    <defs>
+                      <radialGradient id="glyphGrad" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor={elementTheme.accent} stopOpacity="0.6" />
+                        <stop offset="100%" stopColor={elementTheme.accent} stopOpacity="0" />
+                      </radialGradient>
+                    </defs>
+                  </svg>
+                  <div
+                    className="absolute w-32 h-32 rounded-full border"
+                    style={{
+                      borderColor: elementTheme.accent + "66",
+                      background: `radial-gradient(circle, ${elementTheme.accent}22, transparent 70%)`,
+                      animation: "glyphExpand 800ms cubic-bezier(0.25,0,0,1) forwards",
+                    }}
+                  />
+                </div>
+                <div className="relative z-10">
+              <div className="eyebrow flex items-center gap-2 text-[9px] font-bold tracking-[0.22em] text-[#c8a96e]" style={{ animation: "fadeSlideUp 500ms 0ms both" }}>
                 <span className="eyebrow-line w-6 h-[1px] bg-[#c8a96e]" />
                 CHARACTER DOSSIER · LIVE IN-GAME BUILD
               </div>
@@ -576,9 +718,11 @@ export default function UnifiedShowcaseView({
               </div>
 
               {/* Character Lore Quote */}
-              <p className="character-lore-quote text-xs text-[#9aa7b9] italic my-3 pl-3 border-l border-[#c8a96e]/60 font-serif leading-relaxed">
+              <p className="character-lore-quote text-xs text-[#9aa7b9] italic my-3 pl-3 border-l border-[#c8a96e]/60 font-serif leading-relaxed" style={{ animation: "fadeSlideUp 500ms 160ms both" }}>
                 &ldquo;{currentLoreQuote}&rdquo;
               </p>
+                </div>{/* close z-10 */}
+              </div>{/* close relative glyph wrapper */}
 
               {/* Identity Chips */}
               <div className="character-identity-chips">
@@ -646,9 +790,9 @@ export default function UnifiedShowcaseView({
                 </div>
               </div>
 
-              {/* Summary Bento Cards */}
+              {/* Summary Bento Cards with #8 Proximity Gravity Tilt */}
               <div className="character-build-quickstats">
-                <div className="quickstat-card">
+                <TiltCard maxTilt={5} attractRadius={120} className="quickstat-card rounded-xl">
                   <span>EQUIPPED WEAPON</span>
                   <strong>{activeCharacter.weapon?.name || "Not equipped"}</strong>
                   <small>
@@ -656,9 +800,9 @@ export default function UnifiedShowcaseView({
                       ? `Lv. ${activeCharacter.weapon.level} · Refinement R${activeCharacter.weapon.refinement ?? 1}`
                       : "Weapon details"}
                   </small>
-                </div>
+                </TiltCard>
 
-                <div className="quickstat-card">
+                <TiltCard maxTilt={5} attractRadius={120} className="quickstat-card rounded-xl">
                   <span>COMBAT CRIT VALUE</span>
                   <strong className="cv-highlight">
                     {activeCharacter.critValue != null ? `${activeCharacter.critValue} CV` : "—"}
@@ -666,9 +810,9 @@ export default function UnifiedShowcaseView({
                   <small>
                     {(activeCharacter.stats.find((s) => s.label === "CRIT Rate")?.value ?? "—")} CR / {(activeCharacter.stats.find((s) => s.label === "CRIT DMG")?.value ?? "—")} CD
                   </small>
-                </div>
+                </TiltCard>
 
-                <div className="quickstat-card">
+                <TiltCard maxTilt={5} attractRadius={120} className="quickstat-card rounded-xl">
                   <span>ARTIFACT LOADOUT</span>
                   <strong>{activeCharacter.artifacts.length} / 5 Equipped</strong>
                   <small className="truncate">
@@ -676,7 +820,7 @@ export default function UnifiedShowcaseView({
                       ? activeSetBonuses.map((b) => `${b.count}pc ${b.setName}`).join(", ")
                       : "Artifact set details"}
                   </small>
-                </div>
+                </TiltCard>
               </div>
             </div>
           </section>
@@ -801,7 +945,7 @@ export default function UnifiedShowcaseView({
                 </div>
 
                 {activeCharacter.weapon ? (
-                  <TiltCard maxTilt={6}>
+                  <TiltCard maxTilt={6} attractRadius={140}>
                     <div className="weapon-showcase">
                       {/* Feature 12: 3D Weapon Perspective Levitation with Weapon Glow */}
                       <div className="relative group">
@@ -932,6 +1076,7 @@ export default function UnifiedShowcaseView({
                     return (
                       <TiltCard
                         maxTilt={5}
+                        attractRadius={120}
                         holographic={true}
                         key={`${artifact.slot}-${index}`}
                         onMouseEnter={() => setHoveredSetBonus(artifact.setName || artifact.slot)}
@@ -1048,8 +1193,10 @@ export default function UnifiedShowcaseView({
                   <div className="talent-cards-grid">
                     {activeCharacter.talents.length ? (
                       activeCharacter.talents.map((talent, idx) => (
-                        <div
-                          className={`talent-card ${talent.isCrowned ? "is-crowned" : ""}`}
+                        <TiltCard
+                          maxTilt={4}
+                          attractRadius={100}
+                          className={`talent-card rounded-xl ${talent.isCrowned ? "is-crowned" : ""}`}
                           key={`${talent.name}-${idx}`}
                         >
                           <div className="talent-icon-box">
@@ -1071,7 +1218,7 @@ export default function UnifiedShowcaseView({
                               )}
                             </div>
                           </div>
-                        </div>
+                        </TiltCard>
                       ))
                     ) : (
                       <p className="build-empty">Talent data is not available.</p>
@@ -1110,6 +1257,22 @@ export default function UnifiedShowcaseView({
         elementAccent={elementTheme.accent}
         isOpen={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
+      />
+
+      {/* Feature 22: Interactive Fluid Cursor Trail (Stardust Wake) */}
+      <CursorTrail elementAccent={elementTheme.accent} />
+
+      {/* Feature 19: React Bits Vertical macOS Magnification Dock on Left Edge (Hidden, Show on Hover) */}
+      <Dock
+        items={dockItems}
+        position="left"
+        autoHide={true}
+        baseItemSize={48}
+        magnification={72}
+        panelHeight={64}
+        gap={8}
+        accentColor={elementTheme.accent}
+        className="!fixed !left-2 !top-1/2 !-translate-y-1/2 !z-[300] select-none"
       />
 
       {/* Showcase Footer */}

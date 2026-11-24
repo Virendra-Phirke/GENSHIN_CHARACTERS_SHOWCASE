@@ -480,3 +480,88 @@ button, a { -webkit-tap-highlight-color: transparent; }
     @apply font-sans;
   }
 }
+
+/* =========================================================================
+   ANIMATIONS & TRANSITIONS (Features 1, 2, 4, 10, 16)
+   ========================================================================= */
+
+@keyframes auroraWave {
+  0% {
+    transform: translateY(0) scaleY(1) skewX(0deg);
+    opacity: 0.12;
+  }
+  50% {
+    transform: translateY(18px) scaleY(1.08) skewX(-2deg);
+    opacity: 0.22;
+  }
+  100% {
+    transform: translateY(-12px) scaleY(0.96) skewX(2deg);
+    opacity: 0.15;
+  }
+}
+
+@keyframes starburstOut {
+  0% {
+    transform: scale(0.2) rotate(0deg);
+    opacity: 0.9;
+  }
+  60% {
+    transform: scale(1.8) rotate(45deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.8) rotate(90deg);
+    opacity: 0;
+  }
+}
+
+@keyframes cometStreak {
+  0% {
+    transform: translateX(-100%) rotate(-25deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) rotate(-25deg);
+    opacity: 0;
+  }
+}
+
+@keyframes glyphExpand {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes laserPulse {
+  0%, 100% {
+    stroke-opacity: 0.6;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-opacity: 1;
+    stroke-dashoffset: -20;
+  }
+}
