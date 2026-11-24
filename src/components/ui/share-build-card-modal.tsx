@@ -169,7 +169,7 @@ function CardArtifactItem({
         </div>
 
         <div className="text-[11px] font-bold text-white leading-normal my-0.5">
-          <span className="text-slate-300 font-medium">{artifact.mainStat?.label ?? "Main Stat"}: </span>
+          <span className="text-[#cbd5e1] font-medium">{artifact.mainStat?.label ?? "Main Stat"}: </span>
           <span className="font-mono font-extrabold" style={{ color: theme.accentColor }}>{mainVal}</span>
         </div>
 
@@ -276,13 +276,22 @@ export default function ShareBuildCardModal({
     if (!cardRef.current) return;
     setDownloading(true);
 
-    // Suppress unsupported oklch console errors emitted by html2canvas
+    // Suppress unsupported oklch console errors/warnings emitted by html2canvas
     const origError = console.error;
+    const origWarn = console.warn;
+    const isOklch = (args: unknown[]) =>
+      args.some(
+        (a) =>
+          (typeof a === "string" && (a.includes("oklch") || a.includes("unsupported color function"))) ||
+          (a instanceof Error && a.message.includes("oklch"))
+      );
     console.error = (...args: unknown[]) => {
-      if (typeof args[0] === "string" && args[0].includes("oklch")) {
-        return;
-      }
+      if (isOklch(args)) return;
       origError.apply(console, args);
+    };
+    console.warn = (...args: unknown[]) => {
+      if (isOklch(args)) return;
+      origWarn.apply(console, args);
     };
 
     try {
@@ -371,6 +380,7 @@ export default function ShareBuildCardModal({
       setDownloading(false);
     } finally {
       console.error = origError;
+      console.warn = origWarn;
     }
   };
 
