@@ -630,9 +630,8 @@ export default function UnifiedShowcaseView({
             <div
               className="absolute inset-0"
               style={{
-                background: `radial-gradient(circle at 50% 50%, ${
-                  ELEMENT_DATA[prevElement]?.accent ?? "#c8a96e"
-                }33, transparent 60%)`,
+                background: `radial-gradient(circle at 50% 50%, ${ELEMENT_DATA[prevElement]?.accent ?? "#c8a96e"
+                  }33, transparent 60%)`,
                 animation: "starburstOut 350ms ease-out forwards",
               }}
             />
@@ -640,9 +639,8 @@ export default function UnifiedShowcaseView({
             <div
               className="absolute w-[200vw] h-[1px] origin-center"
               style={{
-                background: `linear-gradient(90deg, transparent, ${
-                  ELEMENT_DATA[prevElement]?.accent ?? "#c8a96e"
-                }cc, transparent)`,
+                background: `linear-gradient(90deg, transparent, ${ELEMENT_DATA[prevElement]?.accent ?? "#c8a96e"
+                  }cc, transparent)`,
                 transform: "rotate(-25deg)",
                 animation: "cometStreak 350ms ease-out forwards",
               }}
@@ -703,39 +701,39 @@ export default function UnifiedShowcaseView({
                   />
                 </div>
                 <div className="relative z-10">
-              <div className="eyebrow flex items-center gap-2 text-[9px] font-bold tracking-[0.22em] text-[#c8a96e]" style={{ animation: "fadeSlideUp 500ms 0ms both" }}>
-                <span className="eyebrow-line w-6 h-[1px] bg-[#c8a96e]" />
-                CHARACTER DOSSIER · LIVE IN-GAME BUILD
-              </div>
+                  <div className="eyebrow flex items-center gap-2 text-[9px] font-bold tracking-[0.22em] text-[#c8a96e]" style={{ animation: "fadeSlideUp 500ms 0ms both" }}>
+                    <span className="eyebrow-line w-6 h-[1px] bg-[#c8a96e]" />
+                    CHARACTER DOSSIER · LIVE IN-GAME BUILD
+                  </div>
 
-              <div className="character-title-row flex items-center justify-between gap-4">
-                <div className="h-[60px] sm:h-[76px] w-[320px] sm:w-[480px] max-w-full flex items-center">
-                  <TechText
-                    key={`tech-title-${activeCharacter.id}`}
-                    text={activeCharacter.name}
-                    fontSize={52}
-                    fontWeight={800}
-                    color="#f3f5f9"
-                    accentColor={elementTheme.accent}
-                    align="left"
-                    lineStyle="dashed"
-                    strokeWidth={1.5}
-                    sweep={true}
-                    clickKick={true}
-                    intro="sweep"
-                    introDuration={1.1}
-                    className="w-full h-full"
-                  />
-                </div>
-                <div className="character-rarity" aria-label={`${activeCharacter.rarity ?? 5} stars`}>
-                  {"★".repeat(activeCharacter.rarity ?? 5)}
-                </div>
-              </div>
+                  <div className="character-title-row flex items-center justify-between gap-4">
+                    <div className="h-[60px] sm:h-[76px] w-[320px] sm:w-[480px] max-w-full flex items-center">
+                      <TechText
+                        key={`tech-title-${activeCharacter.id}`}
+                        text={activeCharacter.name}
+                        fontSize={52}
+                        fontWeight={800}
+                        color="#f3f5f9"
+                        accentColor={elementTheme.accent}
+                        align="left"
+                        lineStyle="dashed"
+                        strokeWidth={1.5}
+                        sweep={true}
+                        clickKick={true}
+                        intro="sweep"
+                        introDuration={1.1}
+                        className="w-full h-full"
+                      />
+                    </div>
+                    <div className="character-rarity" aria-label={`${activeCharacter.rarity ?? 5} stars`}>
+                      {"★".repeat(activeCharacter.rarity ?? 5)}
+                    </div>
+                  </div>
 
-              {/* Character Lore Quote */}
-              <p className="character-lore-quote text-xs text-[#9aa7b9] italic my-3 pl-3 border-l border-[#c8a96e]/60 font-serif leading-relaxed" style={{ animation: "fadeSlideUp 500ms 160ms both" }}>
-                &ldquo;{currentLoreQuote}&rdquo;
-              </p>
+                  {/* Character Lore Quote */}
+                  <p className="character-lore-quote text-xs text-[#9aa7b9] italic my-3 pl-3 border-l border-[#c8a96e]/60 font-serif leading-relaxed" style={{ animation: "fadeSlideUp 500ms 160ms both" }}>
+                    &ldquo;{currentLoreQuote}&rdquo;
+                  </p>
                 </div>{/* close z-10 */}
               </div>{/* close relative glyph wrapper */}
 
@@ -791,9 +789,9 @@ export default function UnifiedShowcaseView({
                         style={
                           isUnlocked
                             ? {
-                                borderColor: elementTheme.accent,
-                                backgroundColor: elementTheme.wash,
-                              }
+                              borderColor: elementTheme.accent,
+                              backgroundColor: elementTheme.wash,
+                            }
                             : {}
                         }
                         title={`Constellation ${index + 1}: ${isUnlocked ? "Unlocked" : "Locked"}`}
@@ -876,22 +874,20 @@ export default function UnifiedShowcaseView({
                       <button
                         type="button"
                         onClick={() => setIsResonanceActive(false)}
-                        className={`px-2 py-0.5 rounded-md font-medium transition-all ${
-                          !isResonanceActive
-                            ? "bg-white/15 text-white shadow-sm"
-                            : "text-[#828e9f] hover:text-white"
-                        }`}
+                        className={`px-2 py-0.5 rounded-md font-medium transition-all ${!isResonanceActive
+                          ? "bg-white/15 text-white shadow-sm"
+                          : "text-[#828e9f] hover:text-white"
+                          }`}
                       >
                         Base / Solo
                       </button>
                       <button
                         type="button"
                         onClick={() => setIsResonanceActive(true)}
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-bold transition-all ${
-                          isResonanceActive
-                            ? "bg-gradient-to-r from-[#d4af37] to-[#e6ca65] text-[#0d1017] shadow-[0_0_10px_rgba(212,175,55,0.4)]"
-                            : "text-[#828e9f] hover:text-[#c8a96e]"
-                        }`}
+                        className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-bold transition-all ${isResonanceActive
+                          ? "bg-gradient-to-r from-[#d4af37] to-[#e6ca65] text-[#0d1017] shadow-[0_0_10px_rgba(212,175,55,0.4)]"
+                          : "text-[#828e9f] hover:text-[#c8a96e]"
+                          }`}
                       >
                         <Flame className="w-2.5 h-2.5" />
                         <span>Resonance</span>
@@ -1031,11 +1027,10 @@ export default function UnifiedShowcaseView({
                       const isHovered = hoveredSetBonus === bonus.setName;
                       return (
                         <span
-                          className={`set-bonus-chip cursor-pointer transition-all duration-200 ${
-                            isHovered
-                              ? "scale-105"
-                              : "hover:bg-white/10"
-                          }`}
+                          className={`set-bonus-chip cursor-pointer transition-all duration-200 ${isHovered
+                            ? "scale-105"
+                            : "hover:bg-white/10"
+                            }`}
                           style={{
                             border: isHovered
                               ? `1px solid ${elementTheme.accent}`
@@ -1085,7 +1080,7 @@ export default function UnifiedShowcaseView({
                     const isSetResonant = Boolean(
                       hoveredSetBonus &&
                       ((artifact.setName && artifact.setName === hoveredSetBonus) ||
-                       (!artifact.setName && hoveredSetBonus === artifact.slot))
+                        (!artifact.setName && hoveredSetBonus === artifact.slot))
                     );
 
                     return (
@@ -1150,9 +1145,8 @@ export default function UnifiedShowcaseView({
                             <div className="artifact-substats">
                               {artifact.substats.map((stat, statIndex) => (
                                 <div
-                                  className={`artifact-substat-row ${
-                                    stat.label.includes("CRIT") ? "is-crit-stat" : ""
-                                  }`}
+                                  className={`artifact-substat-row ${stat.label.includes("CRIT") ? "is-crit-stat" : ""
+                                    }`}
                                   key={`${stat.label}-${statIndex}`}
                                 >
                                   <span className="substat-label">{stat.label}</span>
