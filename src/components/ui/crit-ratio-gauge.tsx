@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 interface CritRatioGaugeProps {
   critRate: number; // e.g. 50.1 (percentage)
@@ -36,15 +37,21 @@ export default function CritRatioGauge({
       <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-white/5 text-center">
         <div>
           <span className="block text-[9px] text-[#8c97a7] uppercase tracking-wider">CRIT Rate</span>
-          <strong className="text-sm font-semibold text-[#f0e4cc]">{critRate.toFixed(1)}%</strong>
+          <strong className="text-sm font-semibold text-[#f0e4cc]">
+            <NumberTicker value={critRate} decimalPlaces={1} suffix="%" />
+          </strong>
         </div>
         <div>
           <span className="block text-[9px] text-[#8c97a7] uppercase tracking-wider">CRIT DMG</span>
-          <strong className="text-sm font-semibold text-[#f0e4cc]">{critDmg.toFixed(1)}%</strong>
+          <strong className="text-sm font-semibold text-[#f0e4cc]">
+            <NumberTicker value={critDmg} decimalPlaces={1} suffix="%" />
+          </strong>
         </div>
         <div>
           <span className="block text-[9px] text-[#8c97a7] uppercase tracking-wider">Ratio (1 : X)</span>
-          <strong className="text-sm font-semibold text-[#e5be78]">1 : {ratio}</strong>
+          <strong className="text-sm font-semibold text-[#e5be78]">
+            1 : <NumberTicker value={parseFloat(ratio)} decimalPlaces={2} />
+          </strong>
         </div>
       </div>
 
@@ -79,7 +86,9 @@ export default function CritRatioGauge({
 
       <div className="mt-3 flex items-center justify-between text-[9px] text-[#788496]">
         <span>Standard Golden Benchmark: 1 : 2.0</span>
-        <span className="font-mono text-[#c8a96e] font-semibold">{cv} Total CV</span>
+        <span className="font-mono text-[#c8a96e] font-semibold">
+          <NumberTicker value={cv} decimalPlaces={1} /> Total CV
+        </span>
       </div>
     </div>
   );

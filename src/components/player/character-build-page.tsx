@@ -17,6 +17,7 @@ import {
 import type { PlayerApiError, PlayerShowcase, ShowcaseCharacter } from "@/lib/types";
 import CelestialBackground from "@/components/ui/celestial-background";
 import GlowCursor from "@/components/GlowCursor";
+import { NumberTicker, SmartNumberTicker } from "@/components/ui/number-ticker";
 
 type Props = { uid: string; characterId: number };
 
@@ -339,21 +340,36 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                   <span>EQUIPPED WEAPON</span>
                   <strong>{character.weapon?.name || "Not available"}</strong>
                   <small>
-                    {character.weapon?.level ? `Lv. ${character.weapon.level} · Refinement R${character.weapon.refinement ?? 1}` : "No details"}
+                    {character.weapon?.level ? (
+                      <>
+                        Lv. <NumberTicker value={character.weapon.level} /> · Refinement R<NumberTicker value={character.weapon.refinement ?? 1} />
+                      </>
+                    ) : (
+                      "No details"
+                    )}
                   </small>
                 </div>
                 <div className="quickstat-card">
                   <span>COMBAT CRIT VALUE</span>
                   <strong className="cv-highlight">
-                    {character.critValue != null ? `${character.critValue} CV` : "—"}
+                    {character.critValue != null ? (
+                      <>
+                        <NumberTicker value={character.critValue} decimalPlaces={1} /> CV
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </strong>
                   <small>
-                    {(character.stats.find((s) => s.label === "CRIT Rate")?.value ?? "—")} CR / {(character.stats.find((s) => s.label === "CRIT DMG")?.value ?? "—")} CD
+                    <SmartNumberTicker value={character.stats.find((s) => s.label === "CRIT Rate")?.value ?? "—"} /> CR /{" "}
+                    <SmartNumberTicker value={character.stats.find((s) => s.label === "CRIT DMG")?.value ?? "—"} /> CD
                   </small>
                 </div>
                 <div className="quickstat-card">
                   <span>ARTIFACT LOADOUT</span>
-                  <strong>{character.artifacts.length} / 5 Equipped</strong>
+                  <strong>
+                    <NumberTicker value={character.artifacts.length} /> / 5 Equipped
+                  </strong>
                   <small>
                     {activeSetBonuses.length ? activeSetBonuses.map((b) => `${b.count}pc ${b.setName}`).join(", ") : "Artifact set details"}
                   </small>
@@ -389,7 +405,9 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                           <span className="stat-name">{stat.label}</span>
                           {stat.detail && <small className="build-stat-detail">{stat.detail}</small>}
                         </div>
-                        <strong className="stat-value">{stat.value}</strong>
+                        <strong className="stat-value">
+                          <SmartNumberTicker value={stat.value} />
+                        </strong>
                       </div>
                     ))
                   ) : (
@@ -405,7 +423,9 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                     <Swords size={13} /> EQUIPPED WEAPON
                   </span>
                   {character.weapon?.refinement && (
-                    <span className="refinement-pill">R{character.weapon.refinement}</span>
+                    <span className="refinement-pill">
+                      R<NumberTicker value={character.weapon.refinement} />
+                    </span>
                   )}
                 </div>
 
@@ -424,19 +444,19 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                       </span>
                       <h3>{character.weapon.name || "Weapon"}</h3>
                       <p className="weapon-level-text">
-                        Level {character.weapon.level ?? 90} / 90 <span>·</span> Refinement R{character.weapon.refinement ?? 1}
+                        Level <NumberTicker value={character.weapon.level ?? 90} /> / 90 <span>·</span> Refinement R<NumberTicker value={character.weapon.refinement ?? 1} />
                       </p>
                       <div className="weapon-stats">
                         {character.weapon.baseAttack && (
                           <div className="weapon-stat-pill">
                             <span>Base ATK</span>
-                            <strong>{character.weapon.baseAttack}</strong>
+                            <strong><SmartNumberTicker value={character.weapon.baseAttack} /></strong>
                           </div>
                         )}
                         {character.weapon.substat && (
                           <div className="weapon-stat-pill">
                             <span>{character.weapon.substat.label}</span>
-                            <strong>{character.weapon.substat.value}</strong>
+                            <strong><SmartNumberTicker value={character.weapon.substat.value} /></strong>
                           </div>
                         )}
                       </div>
@@ -452,11 +472,11 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                 <div className="panel-header">
                   <div className="panel-header-left">
                     <span className="build-panel-label">
-                      <Sparkles size={13} /> ARTIFACTS · {character.artifacts.length}/5
+                      <Sparkles size={13} /> ARTIFACTS · <NumberTicker value={character.artifacts.length} />/5
                     </span>
                     {totalArtifactCV && (
                       <span className="artifact-total-cv-pill">
-                        Total Substat CV: {totalArtifactCV}
+                        Total Substat CV: <NumberTicker value={parseFloat(totalArtifactCV)} decimalPlaces={1} />
                       </span>
                     )}
                   </div>
@@ -486,7 +506,7 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                           <p className="artifact-set-name">{artifact.setName || "Artifact Set"}</p>
                         </div>
                         <div className="artifact-level-badge">
-                          +{artifact.level ?? 0}
+                          +<NumberTicker value={artifact.level ?? 0} />
                         </div>
                       </div>
 
@@ -494,15 +514,17 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                       {artifact.mainStat && (
                         <div className="artifact-main-stat">
                           <span className="main-stat-label">{artifact.mainStat.label}</span>
-                          <strong className="main-stat-value">{artifact.mainStat.value}</strong>
+                          <strong className="main-stat-value"><SmartNumberTicker value={artifact.mainStat.value} /></strong>
                         </div>
                       )}
 
                       {/* Substats Header with individual piece CV */}
                       <div className="artifact-roll-heading">
-                        <span>SUBSTAT ROLLS ({artifact.substats.length})</span>
+                        <span>SUBSTAT ROLLS (<NumberTicker value={artifact.substats.length} />)</span>
                         {artifact.critValue != null && (
-                          <span className="piece-cv-badge">{artifact.critValue} CV</span>
+                          <span className="piece-cv-badge">
+                            <NumberTicker value={artifact.critValue} decimalPlaces={1} /> CV
+                          </span>
                         )}
                       </div>
 
@@ -514,7 +536,9 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                             key={`${stat.label}-${statIndex}`}
                           >
                             <span className="substat-label">{stat.label}</span>
-                            <strong className="substat-value">+{stat.value}</strong>
+                            <strong className="substat-value">
+                              +<SmartNumberTicker value={stat.value} />
+                            </strong>
                           </div>
                         ))}
                       </div>
@@ -547,10 +571,14 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                           />
                         </div>
                         <div className="talent-details">
-                          <span className="talent-type-label">TALENT 0{idx + 1}</span>
+                          <span className="talent-type-label">
+                            TALENT 0<NumberTicker value={idx + 1} />
+                          </span>
                           <h4 className="talent-name">{talent.name}</h4>
                           <div className="talent-level-wrap">
-                            <span className="talent-level-number">Lv. {talent.level}</span>
+                            <span className="talent-level-number">
+                              Lv. <NumberTicker value={talent.level} />
+                            </span>
                             {talent.isCrowned && (
                               <span className="crowned-badge">
                                 <Crown size={11} /> CROWNED
@@ -573,7 +601,7 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
                     <Sparkles size={13} /> CONSTELLATIONS
                   </span>
                   <span className="panel-badge">
-                    {character.constellation ?? 0} / 6 ACTIVATED
+                    <NumberTicker value={character.constellation ?? 0} /> / 6 ACTIVATED
                   </span>
                 </div>
 

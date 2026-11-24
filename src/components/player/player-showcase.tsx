@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowUpRight, RefreshCw, ShieldCheck, Sparkles, Swords } from "lucide-react";
 import type { PlayerApiError, PlayerShowcase, ShowcaseCharacter } from "@/lib/types";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 type Props = { uid: string };
 
@@ -192,14 +193,14 @@ export default function PlayerShowcase({ uid }: Props) {
                             {character.element || "Genshin"}
                           </span>
                           <span className={`character-constellation-pill ${character.constellation ? "is-unlocked" : ""}`}>
-                            C{character.constellation ?? 0}
+                            C<NumberTicker value={character.constellation ?? 0} />
                           </span>
                         </div>
 
                         {/* Level overlay badge */}
                         {character.level != null && (
                           <span className="character-card-level-chip">
-                            Lv. {character.level}
+                            Lv. <NumberTicker value={character.level} />
                           </span>
                         )}
                       </div>
@@ -222,12 +223,14 @@ export default function PlayerShowcase({ uid }: Props) {
                             <Swords size={12} />
                             <span>
                               {character.weapon?.name || "Weapon"}
-                              {character.weapon?.refinement != null && ` · R${character.weapon.refinement}`}
+                              {character.weapon?.refinement != null && (
+                                <> · R<NumberTicker value={character.weapon.refinement} /></>
+                              )}
                             </span>
                           </div>
                           {character.critValue != null && (
                             <span className="character-cv-pill" title="Crit Value = (CRIT Rate × 2) + CRIT DMG">
-                              {character.critValue} CV
+                              <NumberTicker value={character.critValue} decimalPlaces={1} /> CV
                             </span>
                           )}
                         </div>

@@ -28,6 +28,7 @@ import ShareBuildCardModal from "@/components/ui/share-build-card-modal";
 import GlowCursor from "@/components/GlowCursor";
 import Dock from "@/components/Dock";
 import TechText from "@/components/TechText";
+import { NumberTicker, SmartNumberTicker } from "@/components/ui/number-ticker";
 
 // ---------------------------------------------------------------------------
 // FEATURE 5: Fluid Inertia Smooth Scroll with Dynamic Velocity Tilt
@@ -72,65 +73,17 @@ function useScrollVelocity() {
 }
 
 // ---------------------------------------------------------------------------
-// FEATURE 6: Scroll-Driven Stat Counter Animation (CountUp on In-View)
+// FEATURE 6: Scroll-Driven Stat Counter Animation (Magic UI NumberTicker)
 // ---------------------------------------------------------------------------
 function CountUpStat({
   value,
-  duration = 900,
+  className,
 }: {
-  value: string;
+  value: string | number;
+  className?: string;
   duration?: number;
 }) {
-  const [displayValue, setDisplayValue] = useState(value);
-  const numericMatch = value.match(/([\d,.]+)/);
-
-  useEffect(() => {
-    if (!numericMatch) {
-      const t = setTimeout(() => setDisplayValue(value), 0);
-      return () => clearTimeout(t);
-    }
-    const cleanStr = numericMatch[1].replace(/,/g, "");
-    const target = parseFloat(cleanStr);
-    if (isNaN(target)) {
-      const t = setTimeout(() => setDisplayValue(value), 0);
-      return () => clearTimeout(t);
-    }
-
-    const hasDecimal = cleanStr.includes(".");
-    const decimals = hasDecimal ? cleanStr.split(".")[1].length : 0;
-    const hasComma = value.includes(",");
-    const prefix = value.slice(0, numericMatch.index);
-    const suffix = value.slice((numericMatch.index ?? 0) + numericMatch[0].length);
-
-    const start = 0;
-    const startTime = performance.now();
-
-    const animate = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // ease-out quartic
-      const ease = 1 - Math.pow(1 - progress, 4);
-      const current = start + (target - start) * ease;
-
-      const formatted = hasComma
-        ? Math.round(current).toLocaleString()
-        : current.toFixed(decimals);
-
-      setDisplayValue(`${prefix}${formatted}${suffix}`);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        setDisplayValue(value);
-      }
-    };
-
-    const animId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, duration]);
-
-  return <span>{displayValue}</span>;
+  return <SmartNumberTicker value={value} className={className} />;
 }
 
 interface UnifiedShowcaseViewProps {
@@ -577,7 +530,7 @@ export default function UnifiedShowcaseView({
           </span>
           <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/20" />
           <span className="px-2.5 py-0.5 rounded-full border border-[#c8a96e]/30 bg-[#c8a96e]/10 text-[#f2e2be] text-[10px] font-bold">
-            AR {profile.adventureRank ?? 60} · WL {profile.worldLevel ?? 9}
+            AR <NumberTicker value={profile.adventureRank ?? 60} /> · WL <NumberTicker value={profile.worldLevel ?? 9} />
           </span>
 
           {/* Feature 5: 4K Showcase Card Studio Modal Trigger */}
@@ -762,7 +715,7 @@ export default function UnifiedShowcaseView({
                   )}
                 </span>
                 <span className="level-chip">
-                  LEVEL {activeCharacter.level ?? 90} / 90
+                  LEVEL <NumberTicker value={activeCharacter.level ?? 90} /> / 90
                 </span>
                 <span className="friendship-chip">
                   {activeCharacter.friendship != null
@@ -776,7 +729,7 @@ export default function UnifiedShowcaseView({
                 <div className="constellation-track-info">
                   <span className="constellation-label">CONSTELLATION</span>
                   <strong style={{ color: elementTheme.accent }}>
-                    C{activeCharacter.constellation ?? 0}
+                    C<NumberTicker value={activeCharacter.constellation ?? 0} />
                   </strong>
                 </div>
                 <div className="constellation-dots">
@@ -809,25 +762,38 @@ export default function UnifiedShowcaseView({
                   <span>EQUIPPED WEAPON</span>
                   <strong>{activeCharacter.weapon?.name || "Not equipped"}</strong>
                   <small>
-                    {activeCharacter.weapon?.level
-                      ? `Lv. ${activeCharacter.weapon.level} · Refinement R${activeCharacter.weapon.refinement ?? 1}`
-                      : "Weapon details"}
+                    {activeCharacter.weapon?.level ? (
+                      <>
+                        Lv. <NumberTicker value={activeCharacter.weapon.level} /> · Refinement R<NumberTicker value={activeCharacter.weapon.refinement ?? 1} />
+                      </>
+                    ) : (
+                      "Weapon details"
+                    )}
                   </small>
                 </TiltCard>
 
                 <TiltCard maxTilt={5} attractRadius={120} className="quickstat-card rounded-xl">
                   <span>COMBAT CRIT VALUE</span>
                   <strong className="cv-highlight">
-                    {activeCharacter.critValue != null ? `${activeCharacter.critValue} CV` : "—"}
+                    {activeCharacter.critValue != null ? (
+                      <>
+                        <NumberTicker value={activeCharacter.critValue} decimalPlaces={1} /> CV
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </strong>
                   <small>
-                    {(activeCharacter.stats.find((s) => s.label === "CRIT Rate")?.value ?? "—")} CR / {(activeCharacter.stats.find((s) => s.label === "CRIT DMG")?.value ?? "—")} CD
+                    <CountUpStat value={activeCharacter.stats.find((s) => s.label === "CRIT Rate")?.value ?? "—"} /> CR /{" "}
+                    <CountUpStat value={activeCharacter.stats.find((s) => s.label === "CRIT DMG")?.value ?? "—"} /> CD
                   </small>
                 </TiltCard>
 
                 <TiltCard maxTilt={5} attractRadius={120} className="quickstat-card rounded-xl">
                   <span>ARTIFACT LOADOUT</span>
-                  <strong>{activeCharacter.artifacts.length} / 5 Equipped</strong>
+                  <strong>
+                    <NumberTicker value={activeCharacter.artifacts.length} /> / 5 Equipped
+                  </strong>
                   <small className="truncate">
                     {activeSetBonuses.length
                       ? activeSetBonuses.map((b) => `${b.count}pc ${b.setName}`).join(", ")
@@ -951,7 +917,9 @@ export default function UnifiedShowcaseView({
                     <Swords size={13} /> EQUIPPED WEAPON
                   </span>
                   {activeCharacter.weapon?.refinement && (
-                    <span className="refinement-pill">R{activeCharacter.weapon.refinement}</span>
+                    <span className="refinement-pill">
+                      R<NumberTicker value={activeCharacter.weapon.refinement} />
+                    </span>
                   )}
                 </div>
 
@@ -983,19 +951,19 @@ export default function UnifiedShowcaseView({
                         </span>
                         <h3>{activeCharacter.weapon.name || "Weapon"}</h3>
                         <p className="weapon-level-text">
-                          Level {activeCharacter.weapon.level ?? 90} / 90 <span>·</span> Refinement R{activeCharacter.weapon.refinement ?? 1}
+                          Level <NumberTicker value={activeCharacter.weapon.level ?? 90} /> / 90 <span>·</span> Refinement R<NumberTicker value={activeCharacter.weapon.refinement ?? 1} />
                         </p>
                         <div className="weapon-stats">
                           {activeCharacter.weapon.baseAttack && (
                             <div className="weapon-stat-pill">
                               <span>Base ATK</span>
-                              <strong>{activeCharacter.weapon.baseAttack}</strong>
+                              <strong><SmartNumberTicker value={activeCharacter.weapon.baseAttack} /></strong>
                             </div>
                           )}
                           {activeCharacter.weapon.substat && (
                             <div className="weapon-stat-pill">
                               <span>{activeCharacter.weapon.substat.label}</span>
-                              <strong>{activeCharacter.weapon.substat.value}</strong>
+                              <strong><SmartNumberTicker value={activeCharacter.weapon.substat.value} /></strong>
                             </div>
                           )}
                         </div>
@@ -1012,11 +980,11 @@ export default function UnifiedShowcaseView({
                 <div className="panel-header">
                   <div className="panel-header-left">
                     <span className="build-panel-label">
-                      <Sparkles size={13} /> ARTIFACTS · {activeCharacter.artifacts.length}/5
+                      <Sparkles size={13} /> ARTIFACTS · <NumberTicker value={activeCharacter.artifacts.length} />/5
                     </span>
                     {totalArtifactCV && (
                       <span className="artifact-total-cv-pill">
-                        Total Substat CV: {totalArtifactCV}
+                        Total Substat CV: <NumberTicker value={parseFloat(totalArtifactCV)} decimalPlaces={1} />
                       </span>
                     )}
                   </div>
@@ -1121,7 +1089,7 @@ export default function UnifiedShowcaseView({
                                 <p className="artifact-set-name">{artifact.setName || "Artifact Set"}</p>
                               </div>
                               <div className="artifact-level-badge">
-                                +{artifact.level ?? 0}
+                                +<NumberTicker value={artifact.level ?? 0} />
                               </div>
                             </div>
 
@@ -1129,15 +1097,17 @@ export default function UnifiedShowcaseView({
                             {artifact.mainStat && (
                               <div className="artifact-main-stat">
                                 <span className="main-stat-label">{artifact.mainStat.label}</span>
-                                <strong className="main-stat-value">{artifact.mainStat.value}</strong>
+                                <strong className="main-stat-value"><SmartNumberTicker value={artifact.mainStat.value} /></strong>
                               </div>
                             )}
 
                             {/* Substats Header with individual piece CV */}
                             <div className="artifact-roll-heading">
-                              <span>SUBSTATS ({artifact.substats.length})</span>
+                              <span>SUBSTATS (<NumberTicker value={artifact.substats.length} />)</span>
                               {artifact.critValue != null && (
-                                <span className="piece-cv-badge">{artifact.critValue} CV</span>
+                                <span className="piece-cv-badge">
+                                  <NumberTicker value={artifact.critValue} decimalPlaces={1} /> CV
+                                </span>
                               )}
                             </div>
 
@@ -1150,7 +1120,9 @@ export default function UnifiedShowcaseView({
                                   key={`${stat.label}-${statIndex}`}
                                 >
                                   <span className="substat-label">{stat.label}</span>
-                                  <strong className="substat-value">+{stat.value}</strong>
+                                  <strong className="substat-value">
+                                    +<SmartNumberTicker value={stat.value} />
+                                  </strong>
                                 </div>
                               ))}
                             </div>
@@ -1174,12 +1146,14 @@ export default function UnifiedShowcaseView({
                       const isCrit = stat.label.includes("CRIT");
                       return (
                         <div key={sIdx} className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/[0.03]">
-                          <span className="text-[9px] text-[#6c7686]">{stat.pips}✦</span>
+                          <span className="text-[9px] text-[#6c7686]">
+                            <NumberTicker value={stat.pips} />✦
+                          </span>
                           <span className={isCrit ? "text-[#f5d070] font-semibold" : "text-[#edf0f5]"}>
                             {stat.label.replace("Elemental ", "E.")}:
                           </span>
                           <strong className={isCrit ? "text-[#f2e2be]" : "text-white"}>
-                            +{stat.value.toFixed(1)}{stat.isPercent ? "%" : ""}
+                            +<NumberTicker value={stat.value} decimalPlaces={1} suffix={stat.isPercent ? "%" : ""} />
                           </strong>
                         </div>
                       );
@@ -1216,10 +1190,14 @@ export default function UnifiedShowcaseView({
                             />
                           </div>
                           <div className="talent-details">
-                            <span className="talent-type-label">TALENT 0{idx + 1}</span>
+                            <span className="talent-type-label">
+                              TALENT 0<NumberTicker value={idx + 1} />
+                            </span>
                             <h4 className="talent-name">{talent.name}</h4>
                             <div className="talent-level-wrap">
-                              <span className="talent-level-number">Lv. {talent.level}</span>
+                              <span className="talent-level-number">
+                                Lv. <NumberTicker value={talent.level} />
+                              </span>
                               {talent.isCrowned && (
                                 <span className="crowned-badge">
                                   <Crown size={11} /> CROWNED
@@ -1242,7 +1220,7 @@ export default function UnifiedShowcaseView({
                       <Sparkles size={13} /> CONSTELLATIONS
                     </span>
                     <span className="panel-badge">
-                      {activeCharacter.constellation ?? 0} / 6 ACTIVATED
+                      <NumberTicker value={activeCharacter.constellation ?? 0} /> / 6 ACTIVATED
                     </span>
                   </div>
 
