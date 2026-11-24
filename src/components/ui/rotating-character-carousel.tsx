@@ -211,32 +211,6 @@ export default function RotatingCharacterCarousel({
           />
         </div>
       </div>
-
-      {/* Quick Jump Character Thumbnails Bar */}
-      <div className="carousel-thumbnails-bar mt-6 flex items-center justify-center gap-2 px-4 overflow-x-auto scrollbar-none">
-        {characters.map((c) => {
-          const isActive = c.id === activeCharacterId;
-          const cElem = ELEMENT_COLORS[c.element || ""] ?? { accent: "#c8a96e" };
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => onSelectCharacter(c)}
-              className={`thumb-nav-btn relative flex items-center gap-2 px-3 py-1.5 rounded border transition-all duration-200 text-xs ${
-                isActive
-                  ? "bg-[#c8a96e]/20 border-[#c8a96e] text-[#f2e2be] shadow-[0_0_12px_rgba(200,169,110,0.25)] font-semibold"
-                  : "bg-white/5 border-white/10 text-[#8c97a7] hover:border-white/25 hover:text-white"
-              }`}
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: cElem.accent }}
-              />
-              <span className="truncate max-w-[85px] sm:max-w-none">{c.name}</span>
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }
