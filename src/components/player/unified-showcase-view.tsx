@@ -25,7 +25,7 @@ import ConstellationStarMap from "@/components/ui/constellation-star-map";
 import ArtifactRollInspector from "@/components/ui/artifact-roll-inspector";
 import ParallaxHeroArt from "@/components/ui/parallax-hero-art";
 import ShareBuildCardModal from "@/components/ui/share-build-card-modal";
-import CursorTrail from "@/components/ui/cursor-trail";
+import GlowCursor from "@/components/GlowCursor";
 import Dock from "@/components/Dock";
 import TechText from "@/components/TechText";
 
@@ -1274,8 +1274,18 @@ export default function UnifiedShowcaseView({
         onClose={() => setShareModalOpen(false)}
       />
 
-      {/* Feature 22: Interactive Fluid Cursor Trail (Stardust Wake) */}
-      <CursorTrail elementAccent={elementTheme.accent} />
+      {/* React Bits Glow Cursor with Dynamic Elemental Color & Burst */}
+      <GlowCursor
+        color={elementTheme.accent}
+        secondaryColor={elementTheme.glow}
+        trailWidth={4}
+        intensity={1.4}
+        linger={1.6}
+        glow={1.3}
+        hotspot={0.8}
+        clickBurst={true}
+        className="pointer-events-none fixed inset-0 z-[9999] w-screen h-screen overflow-hidden"
+      />
 
       {/* Feature 19: React Bits Vertical macOS Magnification Dock on Left Edge (Centered in Height, Hidden, Show on Hover) */}
       <Dock

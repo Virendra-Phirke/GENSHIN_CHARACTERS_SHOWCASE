@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import type { PlayerApiError, PlayerShowcase, ShowcaseCharacter } from "@/lib/types";
 import CelestialBackground from "@/components/ui/celestial-background";
-import CursorTrail from "@/components/ui/cursor-trail";
+import GlowCursor from "@/components/GlowCursor";
 
 type Props = { uid: string; characterId: number };
 
@@ -196,7 +196,17 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
     >
       {/* Dynamic Elemental Ambient Particle Canvas */}
       <CelestialBackground elementAccent={elementTheme.accent} element={character?.element} />
-      <CursorTrail elementAccent={elementTheme.accent} />
+      <GlowCursor
+        color={elementTheme.accent}
+        secondaryColor={elementTheme.glow}
+        trailWidth={4}
+        intensity={1.4}
+        linger={1.6}
+        glow={1.3}
+        hotspot={0.8}
+        clickBurst={true}
+        className="pointer-events-none fixed inset-0 z-[9999] w-screen h-screen overflow-hidden"
+      />
 
       <header className="profile-topbar">
         <Link href="/" className="brand" aria-label="Astra home">
