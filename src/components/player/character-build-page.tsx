@@ -15,6 +15,7 @@ import {
   Zap,
 } from "lucide-react";
 import type { PlayerApiError, PlayerShowcase, ShowcaseCharacter } from "@/lib/types";
+import CelestialBackground from "@/components/ui/celestial-background";
 
 type Props = { uid: string; characterId: number };
 
@@ -192,6 +193,9 @@ export default function CharacterBuildPage({ uid, characterId }: Props) {
         ["--element-glow" as string]: elementTheme.glow,
       }}
     >
+      {/* Dynamic Elemental Ambient Particle Canvas */}
+      <CelestialBackground elementAccent={elementTheme.accent} element={character?.element} />
+
       <header className="profile-topbar">
         <Link href="/" className="brand" aria-label="Astra home">
           <span className="brand-mark"><span /></span>
