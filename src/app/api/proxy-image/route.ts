@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// 1x1 transparent PNG fallback buffer
+const TRANSPARENT_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+  "base64"
+);
+
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
   if (!url) {
@@ -14,10 +20,21 @@ export async function GET(req: NextRequest) {
       "upload-os-bbs.hoyolab.com",
       "fastly.jsdelivr.net",
       "raw.githubusercontent.com",
+      "ambr.top",
+      "gi.yatta.top",
+      "homdgcat.wiki",
+      "shinshin.moe",
+      "genshin.jmp.blue",
+      "api.ambr.top",
     ];
 
     if (!allowedHosts.some((h) => parsed.hostname.endsWith(h))) {
-      return new NextResponse("Host not permitted", { status: 403 });
+      return new NextResponse(TRANSPARENT_PNG, {
+        headers: {
+          "Content-Type": "image/png",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
     }
 
     const response = await fetch(url, {
@@ -27,7 +44,12 @@ export async function GET(req: NextRequest) {
     });
 
     if (!response.ok) {
-      return new NextResponse(`Upstream image failed: ${response.status}`, { status: response.status });
+      return new NextResponse(TRANSPARENT_PNG, {
+        headers: {
+          "Content-Type": "image/png",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
     }
 
     const contentType = response.headers.get("content-type") || "image/png";
@@ -42,6 +64,11 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch {
-    return new NextResponse("Error fetching image", { status: 500 });
+    return new NextResponse(TRANSPARENT_PNG, {
+      headers: {
+        "Content-Type": "image/png",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
   }
 }

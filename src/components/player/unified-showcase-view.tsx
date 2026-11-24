@@ -870,8 +870,8 @@ export default function UnifiedShowcaseView({
                             border: isHovered
                               ? `1px solid ${elementTheme.accent}`
                               : "1px solid rgba(255, 255, 255, 0.12)",
-                            color: isHovered ? elementTheme.accent : "#e4cda1",
-                            backgroundColor: isHovered ? `${elementTheme.accent}20` : "rgba(200, 169, 110, 0.09)",
+                            color: isHovered ? elementTheme.accent : "#e2e8f0",
+                            backgroundColor: isHovered ? `${elementTheme.accent}20` : "rgba(255, 255, 255, 0.05)",
                             boxShadow: isHovered ? `0 0 10px ${elementTheme.accent}35` : undefined,
                           }}
                           key={bonus.setName}
@@ -913,7 +913,9 @@ export default function UnifiedShowcaseView({
                 <div className="artifact-build-list">
                   {activeCharacter.artifacts.map((artifact, index) => {
                     const isSetResonant = Boolean(
-                      hoveredSetBonus && artifact.setName && artifact.setName === hoveredSetBonus
+                      hoveredSetBonus &&
+                      ((artifact.setName && artifact.setName === hoveredSetBonus) ||
+                       (!artifact.setName && hoveredSetBonus === artifact.slot))
                     );
 
                     return (
@@ -921,19 +923,23 @@ export default function UnifiedShowcaseView({
                         maxTilt={5}
                         holographic={true}
                         key={`${artifact.slot}-${index}`}
-                        onMouseEnter={() => artifact.setName && setHoveredSetBonus(artifact.setName)}
+                        onMouseEnter={() => setHoveredSetBonus(artifact.setName || artifact.slot)}
                         onMouseLeave={() => setHoveredSetBonus(null)}
-                        className="transition-all duration-200 rounded-xl"
+                        className="transition-all duration-200 rounded-xl overflow-hidden"
                         style={{
                           border: isSetResonant
                             ? `1px solid ${elementTheme.accent}`
                             : "1px solid rgba(255, 255, 255, 0.08)",
                           boxShadow: isSetResonant
-                            ? `0 0 12px ${elementTheme.accent}40`
-                            : undefined,
+                            ? `0 0 10px ${elementTheme.accent}35`
+                            : "none",
+                          backgroundColor: isSetResonant
+                            ? `${elementTheme.accent}0d`
+                            : "rgba(16, 21, 31, 0.55)",
+                          opacity: hoveredSetBonus ? (isSetResonant ? 1 : 0.65) : 1,
                         }}
                       >
-                        <article className="artifact-build-item h-full flex flex-col justify-between">
+                        <article className="artifact-build-item h-full flex flex-col justify-between !border-0 !bg-transparent !p-3">
                           <div>
                             <div className="artifact-visual-row">
                               <EquipmentArtwork

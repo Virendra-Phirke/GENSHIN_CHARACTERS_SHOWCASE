@@ -208,21 +208,11 @@ export default function ShareBuildCardModal({
   const [showPips, setShowPips] = useState(true);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [flash, setFlash] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Camera flash on open
-  useEffect(() => {
-    if (isOpen) {
-      setFlash(true);
-      const timer = setTimeout(() => setFlash(false), 280);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
 
   // Lock body scroll
   useEffect(() => {
@@ -349,16 +339,11 @@ export default function ShareBuildCardModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-black/92 backdrop-blur-2xl p-4 sm:p-6 select-none animate-in fade-in duration-200 overflow-y-auto"
+      className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-black/85 backdrop-blur-2xl p-4 sm:p-6 select-none animate-in fade-in duration-300 overflow-y-auto"
       onClick={onClose}
     >
-      {/* Shutter Flash Animation */}
-      {flash && (
-        <div className="pointer-events-none fixed inset-0 z-[1000000] bg-white/70 animate-out fade-out duration-300" />
-      )}
-
       <div
-        className="relative w-full max-w-[1240px] rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto border border-white/10 bg-[#0b0e17]"
+        className="relative w-full max-w-[1240px] rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto border border-white/10 bg-[#0b0e17] animate-in zoom-in-95 duration-250 ease-out"
         onClick={(e) => e.stopPropagation()}
       >
         {/* =====================================================================
