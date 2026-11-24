@@ -513,15 +513,15 @@ export default function UnifiedShowcaseView({
             AR {profile.adventureRank ?? 60} · WL {profile.worldLevel ?? 9}
           </span>
 
-          {/* Feature 20: One-Click Share Build Card Snapshot Button */}
+          {/* Feature 5: 4K Showcase Card Studio Modal Trigger */}
           <button
             type="button"
             onClick={() => setShareModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-xs font-semibold text-[#f1f3f7] hover:border-[#c8a96e] transition-all duration-200 shadow-sm"
-            title="Export aesthetic build card snapshot"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#c8a96e]/20 to-amber-500/10 hover:from-[#c8a96e]/30 hover:to-amber-500/20 border border-[#c8a96e]/40 text-xs font-semibold text-[#f2e2be] transition-all duration-200 shadow-[0_0_15px_rgba(200,169,110,0.15)] hover:shadow-[0_0_20px_rgba(200,169,110,0.35)] cursor-pointer"
+            title="Open 4K Showcase Card Studio"
           >
             <Camera className="w-3.5 h-3.5 text-[#c8a96e]" />
-            <span className="hidden sm:inline text-[11px]">Share Card</span>
+            <span className="hidden sm:inline text-[11px] font-mono tracking-wider">4K STUDIO</span>
           </button>
         </div>
       </header>
